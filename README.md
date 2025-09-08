@@ -10,7 +10,7 @@
 
 ![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-05-02-733_host.exp.exponent.jpg)
 
-![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-05-10-462_host.exp.exponent.jpg)
+![App Screenshot](src/assets/screenshot//iaima.jpg)
 
 ![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-05-14-770_host.exp.exponent.jpg)
 
