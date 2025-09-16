@@ -20,6 +20,8 @@ import ajustes from "./src/view/ajustes";
 import IA from "./src/view/IA/IA";
 import crearClase from "./src/view/clase/crearClase";
 import clase from "./src/view/clase/clase"
+import login from "./src/view/log/login";
+import registroAlumno from "./src/view/registroAlumno/registroAlumno"
 
 import home from "./src/view/home";
 
@@ -99,6 +101,8 @@ function StackMenu() {
             <Stack.Screen name="IA" component={IA} />
             <Stack.Screen name="Crear Clase" component={crearClase} />
             <Stack.Screen name="Clase" component={clase} />
+            <Stack.Screen name="login" component={login} options={{headerShown: false}}/>
+            <Stack.Screen name="Registro alumno" component={registroAlumno}/>
         </Stack.Navigator>
     );
 }
