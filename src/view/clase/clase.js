@@ -27,35 +27,36 @@ export default function Clase() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Image />
-                <Text style={[styles.tex, styles.font]}>Profe: {}</Text>
-                 <Text style={[styles.tex, styles.font]}>IdClase: {}</Text>
+                <Text style={[styles.tex, styles.font]}>Profe: { }</Text>
+                <Text style={[styles.tex, styles.font]}>IdClase: { }</Text>
 
             </View>
 
-            <ScrollView style={styles.scroll}>
+            <ScrollView
+                style={{
+                    width: Dimensions.get('window').width - 15,
+                    right: 12,
+                    
+                }}
+            >
                 <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima}>
-
+                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 26.png")}>
                     </Image>
                 </TouchableOpacity>
-                 <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima}>
-
+                <TouchableOpacity style={styles.imaj}>
+                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 27.png")}>
                     </Image>
                 </TouchableOpacity>
-                 <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima}>
-
+                <TouchableOpacity style={styles.imaj}>
+                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 28.png")}>
                     </Image>
                 </TouchableOpacity>
-                 <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima}>
-
+                <TouchableOpacity style={styles.imaj}>
+                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 27.png")}>
                     </Image>
                 </TouchableOpacity>
-                 <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima}>
-
+                <TouchableOpacity style={styles.imaj}>
+                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 26.png")}>
                     </Image>
                 </TouchableOpacity>
 
@@ -63,8 +64,8 @@ export default function Clase() {
 
             <View style={styles.footer}>
                 <Image />
-                <Text style={[styles.tex, styles.font]}>Profe: {}</Text>
-                 <Text style={[styles.tex, styles.font]}>IdClase: {}</Text>
+                <Text style={[styles.tex, styles.font]}>Profe: { }</Text>
+                <Text style={[styles.tex, styles.font]}>IdClase: { }</Text>
 
             </View>
 
@@ -86,26 +87,23 @@ const styles = StyleSheet.create({
         height: 100,
         bottom: 20,
     },
-    font:{
+    font: {
         fontFamily: 'CenturyGothic',
     },
-    tex:{
+    tex: {
         fontSize: 20,
         top: 20,
         marginBottom: 5,
 
     },
-    scroll:{
-       backgroundColor: '#000', 
-    },
-    imaj:{
+    imaj: {
         marginTop: 10,
-        backgroundColor: '#99E7D9',
-        width: '100%',
-        height: 150,
+        whidth: Dimensions.get('window').width,
+        height: 185,
+        borderRadius: 40,
     },
-    ima:{
-       width: '100%',
-        height: 150, 
+    ima: {
+        width: '100%',
+        height: '100%',
     }
 });

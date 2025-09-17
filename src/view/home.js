@@ -37,8 +37,8 @@ export default function home() {
 
                 <View style={{ bottom: 300 }}>
                     <Text style={{ fontSize: 18, marginBottom: 10, fontFamily: 'CenturyGothic-Bold', left: 10 }}>Actividades disponibles:</Text>
-                    <View style={styles.contenIcons}>
-                        <TouchableOpacity style={styles.bt2}>
+                    <View style={styles.contenIcons} >
+                        <TouchableOpacity style={styles.bt2} onPress={() => navigation.navigate("Juego de Sumas")}>
                             <Image source={require('../../src/assets/icon/mate.png')} style={styles.iconImage} />
                             <Text style={styles.iconText}>Matemáticas</Text>
                         </TouchableOpacity>
