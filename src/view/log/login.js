@@ -1,18 +1,19 @@
-import { StyleSheet, Modal, View, Text, Button, Image, FlatList, showModal, TextInput, TouchableOpacity, Dimensions } from "react-native";
+import { StyleSheet, Modal, View, Text, Button, Image, FlatList, TextInput, TouchableOpacity, Dimensions } from "react-native";
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
-import * as Font from 'expo-font'
+import * as Font from 'expo-font';
 import { useFonts, Kavoon_400Regular } from '@expo-google-fonts/kavoon';
 import { Picker } from '@react-native-picker/picker';
 
+/*
 const fetchFonts = () => {
     return Font.loadAsync({
         'CenturyGothic': require('../../assets/font/3394-font.ttf'),
         'CenturyGothic-Bold': require('../../assets/font/4410-font.ttf'),
     });
 };
-
+*/
 export default function login() {
     const navigation = useNavigation();
     const [rol, setRol] = useState(null);
@@ -23,7 +24,10 @@ export default function login() {
     const [verPassword1, setVerPassword1] = useState(false);
     const [fontsLoaded] = useFonts({
         Kavoon_400Regular,
+        CenturyGothic: require('../../assets/font/3394-font.ttf'),
+        CenturyGothicBold: require('../../assets/font/4410-font.ttf'),
     });
+
 
     if (!fontsLoaded) {
         return null;

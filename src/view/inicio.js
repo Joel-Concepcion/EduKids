@@ -25,7 +25,7 @@ export default function inicio() {
                 <Text style={styles.tex}>EduKid's</Text>
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("login")}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Home")}>
                 <Text style={styles.buttonText}>Acceder</Text>
             </TouchableOpacity>
             <Image source={require('../assets/fondo/aba.png')} style={styles.imagen2} />
