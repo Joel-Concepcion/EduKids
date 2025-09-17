@@ -3,53 +3,7 @@
 
 **EduKid's** es una aplicación educativa móvil inspirada en el método Montessori, diseñada para fomentar el aprendizaje autónomo, sensorial y progresivo en niños de edad preescolar. La app combina principios pedagógicos con tecnología moderna para ofrecer una experiencia interactiva, segura y visualmente atractiva.
 
-## Instalación
 
-```bash
-1. Clona el repositorio
-git clone https://github.com/Joel-Concepcion/EduKids.git
-cd EduKids
-
-2. Instala las dependencias
-npm install
-npx expo install firebase
-
-Si estás usando React Native CLI:
-npm install
-npm install @react-native-firebase/app
-cd ios && pod install
-
-3. Configura Firebase
-- Crea un proyecto en Firebase Console
-- Descarga el archivo google-services.json y colócalo en android/app/
-- Descarga el archivo GoogleService-Info.plist y colócalo en ios/
-
-4. Agrega tu configuración
-- Crea un archivo firebaseConfig.js en la raíz del proyecto y agrega:
-
-import { initializeApp } from 'firebase/app';
-
-const firebaseConfig = {
-  apiKey: 'TU_API_KEY',
-  authDomain: 'TU_DOMINIO.firebaseapp.com',
-  projectId: 'TU_ID_PROYECTO',
-  storageBucket: 'TU_BUCKET.appspot.com',
-  messagingSenderId: 'TU_SENDER_ID',
-  appId: 'TU_APP_ID',
-};
-
-export const app = initializeApp(firebaseConfig);
-
-5. Ejecuta la app
-
-Si usás Expo:
-npx expo start
-
-Si usás React Native CLI:
-npx react-native run-android
-o
-npx react-native run-ios
-```
 ## Capturas de pantalla
 
 ![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-04-57-484_host.exp.exponent.jpg)
@@ -66,8 +20,6 @@ npx react-native run-ios
 
 ![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-05-33-169_host.exp.exponent.jpg)
 
-
-![Logo](src/assets//Logo.png)
 
 
 ## Características
@@ -90,11 +42,11 @@ Gestión docente
 - **Matemáticas:** conteo, operaciones básicas, lógica numérica.
 - **Formas:** reconocimiento y clasificación de figuras geométricas.
 - **Sonidos:** identificación auditiva, relación sonido-imagen.
-## Tecnologia
+## Tecnología
 
 **Frontend:** react native.
 
-**Backend :** Firebase.
+**DB:** Firebase.
 
 
 ## Referencia de API

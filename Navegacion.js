@@ -7,11 +7,6 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import "react-native-gesture-handler";
 
-// Iconos
-import Ionicons from "@expo/vector-icons/Ionicons";
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-//import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-
 // Archivos
 import inicio from "./src/view/inicio";
 import Registro from "./src/view/registro";
@@ -22,6 +17,10 @@ import crearClase from "./src/view/clase/crearClase";
 import clase from "./src/view/clase/clase"
 import login from "./src/view/log/login";
 import registroAlumno from "./src/view/registroAlumno/registroAlumno"
+
+import Juego1Suma from "./src/view/game/matematica/juego1Suma";
+import JuegoPalabras from "./src/view/game/literatura/formarPalabras1";
+import JuegoFormas from "./src/view/game/formas/juegoFormas1";
 
 import home from "./src/view/home";
 
@@ -101,8 +100,12 @@ function StackMenu() {
             <Stack.Screen name="IA" component={IA} />
             <Stack.Screen name="Crear Clase" component={crearClase} />
             <Stack.Screen name="Clase" component={clase} />
-            <Stack.Screen name="login" component={login} options={{headerShown: false}}/>
-            <Stack.Screen name="Registro alumno" component={registroAlumno}/>
+            <Stack.Screen name="login" component={login} options={{ headerShown: false }} />
+            <Stack.Screen name="Registro alumno" component={registroAlumno} />
+
+            <Stack.Screen name="Juego de Sumas" component={Juego1Suma} options={{ title: 'Juego Montessori de Sumas' }} />
+            <Stack.Screen name="Juego de Palabras" component={JuegoPalabras} options={{ title: 'Juego Montessori de Palabras' }} />
+            <Stack.Screen name="Formas" component={JuegoFormas} options={{ title: 'Juego Montessori de formas' }} />
         </Stack.Navigator>
     );
 }
