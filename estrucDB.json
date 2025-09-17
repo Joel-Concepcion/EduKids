@@ -1,0 +1,103 @@
+{
+  "roles": {
+    "rolId1": {
+      "descripcion": "docente"
+    },
+    "rolId2": {
+      "descripcion": "admin"
+    },
+    "rolId3": {
+      "descripcion": "alumno"
+    }
+  },
+
+  "docentes": {
+    "docenteId001": {
+      "nombres": "Joel",
+      "apellidos": "Concepción",
+      "correo_electronico": "joel@colegio.edu",
+      "contrasena": "hashed_password",
+      "nombre_colegio": "Montessori Central",
+      "rolId": "rolId1"
+    }
+  },
+
+  "admin": {
+    "adminId001": {
+      "nombres": "Ana",
+      "apellidos": "Gómez",
+      "correo_electronico": "ana@admin.edu",
+      "contrasena": "hashed_password",
+      "rolId": "rolId2"
+    }
+  },
+
+  "alumnos": {
+    "alumnoId001": {
+      "nombres_apellido": "Luis Pérez",
+      "codigo_alumno": "A12345",
+      "nombre_colegio": "Montessori Central",
+      "fecha_registro": "2025-09-14",
+      "rolId": "rolId3"
+    }
+  },
+
+  "clases": {
+    "claseId001": {
+      "nombre_clase": "Matemáticas Inicial",
+      "nombre_aula": "Aula Azul",
+      "codigo_clase": "MAT001",
+      "docenteId": "docenteId001"
+    }
+  },
+
+  "clase_alumno": {
+    "claseAlumnoId001": {
+      "claseId": "claseId001",
+      "alumnoId": "alumnoId001"
+    }
+  },
+
+  "categoria_juego": {
+    "catId001": {
+      "nombre_categoria": "matemática",
+      "descripcion": "Juegos de conteo, sumas, secuencias y lógica numérica"
+    },
+    "catId002": {
+      "nombre_categoria": "literatura",
+      "descripcion": "Lectura, comprensión, vocabulario y narración"
+    },
+    "catId003": {
+      "nombre_categoria": "figuras",
+      "descripcion": "Reconocimiento de formas, patrones y geometría básica"
+    },
+    "catId004": {
+      "nombre_categoria": "sonidos",
+      "descripcion": "Identificación auditiva, ritmo, fonética y música"
+    },
+    "catId005": {
+      "nombre_categoria": "mini-quizzes",
+      "descripcion": "Evaluaciones rápidas de conocimiento y refuerzo"
+    }
+  },
+
+  "juegos": {
+    "juegoId001": {
+      "tipo": "memoria",
+      "nivel": "intermedio",
+      "claseId": "claseId001",
+      "alumnoId": "alumnoId001",
+      "categoriaId": "catId001"
+    }
+  },
+
+  "progresos": {
+    "progresoId001": {
+      "alumnoId": "alumnoId001",
+      "juegoId": "juegoId001",
+      "estado": "completado",
+      "puntaje": 85,
+      "tiempo": 120
+    }
+  }
+}

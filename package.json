@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "edukids",
   "version": "1.0.0",
@@ -38,3 +39,45 @@
   },
   "private": true
 }
+=======
+{
+  "name": "edukids",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo-google-fonts/kavoon": "^0.4.1",
+    "@expo/metro-config": "^54.0.3",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-picker/picker": "^2.11.2",
+    "@react-navigation/bottom-tabs": "^7.3.13",
+    "@react-navigation/drawer": "^7.3.12",
+    "@react-navigation/native": "^7.1.9",
+    "@react-navigation/stack": "^7.3.2",
+    "expo": "^54.0.0",
+    "expo-asset": "^12.0.8",
+    "expo-av": "~15.1.7",
+    "expo-font": "^14.0.4",
+    "expo-speech": "~13.1.7",
+    "expo-status-bar": "~2.2.3",
+    "firebase": "^12.2.1",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-reanimated": "^3.6.0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.10.0",
+    "react-native-snap-carousel": "^3.9.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+}
+>>>>>>> aa7fdea9ccdd11c1ecf50ed782443ac1a0751b03

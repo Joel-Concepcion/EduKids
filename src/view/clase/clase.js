@@ -43,23 +43,6 @@ export default function Clase() {
                     <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 26.png")}>
                     </Image>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 27.png")}>
-                    </Image>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 28.png")}>
-                    </Image>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 27.png")}>
-                    </Image>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.imaj}>
-                    <Image style={styles.ima} source={require("../../assets/bannerActi/Rectangle 26.png")}>
-                    </Image>
-                </TouchableOpacity>
-
             </ScrollView>
 
             <View style={styles.footer}>
