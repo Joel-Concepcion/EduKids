@@ -1,0 +1,36 @@
+1. 🔄 Traer los cambios remotos sin fusionar (solo para ver qué hay)
+bash
+git fetch --all
+Esto actualiza tu referencia local de todas las ramas remotas sin modificar tu código actual.
+
+2. 📥 Cambiar a cada rama y sincronizar
+Por ejemplo, para actualizar EduKid's_v3:
+
+bash
+git checkout "EduKid's_v3"
+git pull origin "EduKid's_v3"
+Repetí esto para cada rama que quieras actualizar:
+
+bash
+git checkout "EduKid's_v4"
+git pull origin "EduKid's_v4"
+
+git checkout "EduKid's_v5"
+git pull origin "EduKid's_v5"
+
+
+////
+git add .
+git commit -m "Resolviendo conflictos en EduKid's_vX"
+
+//////
+✅ Paso final: subir los cambios a GitHub
+Desde tu terminal, asegurate de estar en la rama EduKid's_v3:
+
+bash
+git checkout "EduKid's_v3"
+Y luego ejecutá:
+
+bash
+git push origin "EduKid's_v3"
+Esto actualizará la rama en GitHub con tus correcciones y resoluciones de conflicto.

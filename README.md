@@ -1,3 +1,4 @@
+
 # EduKid's
 
 **EduKid's** es una aplicación educativa móvil inspirada en el método Montessori, diseñada para fomentar el aprendizaje autónomo, sensorial y progresivo en niños de edad preescolar. La app combina principios pedagógicos con tecnología moderna para ofrecer una experiencia interactiva, segura y visualmente atractiva.
@@ -137,4 +138,3 @@ Gestión docente
 | `KeyboardAvoidingView` | Ajusta la vista cuando aparece el teclado            |
 | `Share`              | Abre el menú nativo para compartir contenido           |
 | `Vibration`          | Controla la vibración del dispositivo                  |
->>>>>>> df1fa02c761ba55c95bbd31564cc6768f88e29ea

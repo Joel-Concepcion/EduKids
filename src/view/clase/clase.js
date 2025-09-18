@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as Font from 'expo-font';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 
 const fetchFonts = () => {
     return Font.loadAsync({
@@ -15,28 +17,26 @@ export default function Clase() {
     const navigation = useNavigation();
     const [fontsLoaded, setFontsLoaded] = useState(false);
 
-    useEffect(() => {
+     useEffect(() => {
         fetchFonts().then(() => setFontsLoaded(true));
     }, []);
 
-    if (!fontsLoaded) {
-        return null;
-    }
-
+    if (!fontsLoaded) return null;
+    
     return (
+
         <View style={styles.container}>
             <View style={styles.header}>
-                <Image />
+                <Image style={styles.imM} source={require("../../assets/maestra.jpg")} />
                 <Text style={[styles.tex, styles.font]}>Profe: { }</Text>
-                <Text style={[styles.tex, styles.font]}>IdClase: { }</Text>
-
             </View>
+            <Text style={[styles.tex1, styles.font]}>Id Clase: { }</Text>
 
             <ScrollView
                 style={{
                     width: Dimensions.get('window').width - 15,
                     right: 12,
-                    
+
                 }}
             >
                 <TouchableOpacity style={styles.imaj}>
@@ -45,12 +45,7 @@ export default function Clase() {
                 </TouchableOpacity>
             </ScrollView>
 
-            <View style={styles.footer}>
-                <Image />
-                <Text style={[styles.tex, styles.font]}>Profe: { }</Text>
-                <Text style={[styles.tex, styles.font]}>IdClase: { }</Text>
-
-            </View>
+    
 
         </View>
     );
@@ -63,20 +58,38 @@ const styles = StyleSheet.create({
         backgroundColor: "#ffffff",
     },
     header: {
+        marginTop: 30,
         backgroundColor: "#99E7D9",
         width: Dimensions.get('window').width,
         right: 20,
         alignItems: 'center',
-        height: 100,
+        height: 130,
         bottom: 20,
+        zIndex: 10,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
     },
     font: {
         fontFamily: 'CenturyGothic',
     },
     tex: {
+        left: 50,
         fontSize: 20,
-        top: 20,
+        top: 10,
         marginBottom: 5,
+
+    },
+    tex1: {
+        backgroundColor: '#34B0A6',
+        width: 170,
+        height: 25,
+        fontSize: 20,
+        top: -60,
+        marginBottom: 5,
+        left: 200,
+        zIndex: 10,
+        borderRadius: 10,
+        textAlign: 'left',
 
     },
     imaj: {
@@ -88,5 +101,21 @@ const styles = StyleSheet.create({
     ima: {
         width: '100%',
         height: '100%',
-    }
+    },
+    imM: {
+        left: 30,
+        width: 80,
+        height: 80,
+        borderRadius: 50,
+        marginTop: 40,
+    },
+    footer: {
+        backgroundColor: '#99E7D9',
+        flexDirection: 'row',
+        width: Dimensions.get('window').width,
+        right: 20,
+        top:20,
+        height: 120,
+
+    },
 });
