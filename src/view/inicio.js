@@ -21,7 +21,9 @@ export default function inicio() {
             <Image source={require('../assets/fondo/ari.png')} style={styles.imagen1} />
 
             <View style={{ alignContent: 'center', alignItems: 'center' }}>
-                <Image source={require('../assets/Logo.png')} style={styles.lg1} />
+                <View style={styles.lg1C}>
+                    <Image source={require('../assets/Logo.png')} style={styles.lg1} />
+                </View>
                 <Text style={styles.tex}>EduKid's</Text>
             </View>
 
@@ -51,13 +53,19 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: -320,
     },
-    lg1: {
+    lg1C: {
         width: 300,
         height: 300,
         borderWidth: 4,
         borderRadius: 150,
         borderColor: '#34B0A6',
         bottom: 50,
+        alignItems: 'center',
+    },
+    lg1: {
+        top: 30,
+        width: 212,
+        height: 230,
     },
     tex: {
         bottom: 40,

@@ -83,9 +83,8 @@ export default function registroAlumno() {
                 codigo_alumno: codigoAlumno,
                 nombre_colegio: nombreColegio,
                 fecha_registro: obtenerFechaActual(),
-                rol: '3',
+                rolId: '3',
             };
-
             setListaAlumnos([...listaAlumnos, nuevoAlumno]);
         }
 
@@ -93,8 +92,7 @@ export default function registroAlumno() {
         setNombreAlumno('');
         setCodigoAlumno('');
     };
-
-    //Unaves listado, seccion para guardar el registro 
+    //seccion para guardar el registro 
     const guardarRegistro = async () => {
         try {
             const alumnosRef = collection(db, 'alumnos');
@@ -173,7 +171,7 @@ export default function registroAlumno() {
 
                 <TouchableOpacity style={styles.bt} onPress={añadirAlumno}>
                     <Text style={[styles.tex11, styles.font]}>
-                        {codigoEditando ? 'Añadir' : 'Actualizar'}
+                        {codigoEditando ? 'Actualizar' : 'Añadir'}
                     </Text>
 
                 </TouchableOpacity>

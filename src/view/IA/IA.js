@@ -27,6 +27,12 @@ const STORAGE_KEY = "montessoriChatHistory";
 export default function App() {
     const scrollRef = useRef(null);
 
+    //Filtros para Montessori
+    //const palabrasClave = ["Montessori", "ambiente preparado", "material sensorial", "autoeducación", "periodos sensibles", "educación cósmica", "autonomía", "ciclos de desarrollo"];
+
+    //Fin de palabras clave 
+
+
     function cleanTextForSpeech(text) {
         let cleaned = text;
 
@@ -61,7 +67,7 @@ export default function App() {
     // Limpiar TTS al desmontar
     useEffect(() => {
         return () => {
-        
+
             Speech.stop();
         };
     }, []);
@@ -148,6 +154,165 @@ export default function App() {
     };
 
     const callAPI = async (promptText) => {
+
+        //Reescritura inteligente del prompt
+        let textoFinal = promptText;
+
+        if (
+            promptText.toLowerCase().includes("educación") &&
+            !promptText.toLowerCase().includes("montessori")
+        ) {
+            textoFinal = `Desde el enfoque Montessori, ${promptText}`;
+        }
+        //Filtro Montessori
+        const palabrasClave = [
+            // Montessori explícito
+            "Montessori",
+            "María Montessori",
+            "guía Montessori",
+            "materiales Montessori",
+            "lenguaje Montessori",
+            "matemáticas Montessori",
+            "vida práctica",
+            "gracia y cortesía",
+            "control de error",
+            "material autocorrectivo",
+
+            // Ambientes y estructuras
+            "ambiente preparado",
+            "ambiente estructurado",
+            "ambiente libre",
+            "casa de niños",
+            "aula activa",
+            "espacio educativo",
+            "zona de trabajo",
+            "rincón de lectura",
+
+            // Tipos de aprendizaje
+            "aprendizaje activo",
+            "aprendizaje autónomo",
+            "aprendizaje autodirigido",
+            "aprendizaje experiencial",
+            "aprendizaje multisensorial",
+            "aprendizaje significativo",
+            "aprendizaje personalizado",
+            "aprendizaje colaborativo",
+            "aprendizaje libre",
+            "aprendizaje guiado",
+            "aprendizaje reflexivo",
+            "aprendizaje por descubrimiento",
+            "aprendizaje respetuoso",
+            "aprendizaje integral",
+            "aprendizaje emocional",
+            "aprendizaje espiritual",
+            "aprendizaje físico",
+            "aprendizaje mental",
+            "aprendizaje social",
+            "aprendizaje ético",
+            "aprendizaje estético",
+            "aprendizaje lógico",
+            "aprendizaje creativo",
+            "aprendizaje crítico",
+            "aprendizaje empático",
+            "aprendizaje responsable",
+
+            // Desarrollo infantil
+            "periodos sensibles",
+            "etapas del desarrollo",
+            "desarrollo integral",
+            "disciplina interior",
+            "autoeducación",
+            "autonomía",
+            "libertad con límites",
+            "concentración",
+            "orden",
+            "manipulación",
+            "sensorial",
+            "trabajo independiente",
+            "trabajo en grupo",
+            "trabajo individual",
+            "trabajo en silencio",
+
+            // Educación por niveles
+            "educación infantil",
+            "educación preescolar",
+            "educación primaria",
+            "educación inicial",
+            "educación básica",
+            "educación alternativa",
+            "educación personalizada",
+            "educación emocional",
+            "educación espiritual",
+            "educación holística",
+            "educación cósmica",
+
+            // Rol del adulto
+            "docente",
+            "maestro",
+            "educador",
+            "guía",
+            "acompañante",
+            "facilitador",
+            "observación",
+            "acompañamiento",
+            "intervención educativa",
+
+            // Materiales y recursos
+            "material sensorial",
+            "material manipulativo",
+            "material concreto",
+            "material abstracto",
+            "material didáctico",
+            "material educativo",
+            "material autocorrectivo",
+            "juegos educativos",
+            "material de vida práctica",
+            "materiales",
+            "niños",
+            "educación",
+            "colores",
+            "texturas",
+            "juegos",
+            "juego",
+
+            // Filosofía y valores
+            "respeto",
+            "empatía",
+            "libertad",
+            "independencia",
+            "curiosidad",
+            "exploración",
+            "motivación intrínseca",
+            "aprendizaje natural",
+            "aprendizaje espontáneo",
+            "educación respetuosa",
+            "educación consciente",
+            "educación transformadora"    
+        ];
+
+        /*const esMontessori = palabrasClave.some(palabra =>
+            textoFinal.toLowerCase().includes(palabra.toLowerCase())
+        );*/
+        const esMontessori = textoFinal.toLowerCase().includes("educación") ||
+            palabrasClave.some(palabra =>
+                textoFinal.toLowerCase().includes(palabra.toLowerCase())
+            );
+        if (!esMontessori) {
+            addMessage("ai", "Esta IA solo responde sobre el método Montessori. Reformulá tu pregunta.");
+            return;
+        }
+
+        /*function esPreguntaMontessori(pregunta) {
+            return palabrasClave.some(palabra =>
+                pregunta.toLowerCase().includes(palabra.toLowerCase())
+            );
+        }
+        if (!esPreguntaMontessori(promptText)) {
+            addMessage("ai", "Esta IA solo responde sobre el método Montessori. Reformulá tu pregunta.");
+            return;
+        }*/
+
+
         setLoading(true);
         try {
             const res = await fetch(
@@ -155,7 +320,8 @@ export default function App() {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(buildPayload(promptText)),
+                    //body: JSON.stringify(buildPayload(promptText)),
+                    body: JSON.stringify(buildPayload(textoFinal))
                 }
             );
 
@@ -437,11 +603,11 @@ const styles = StyleSheet.create({
         gap: 10,
         height: 120,
     },
-    headerLeft: { 
-        flexDirection: "row", 
+    headerLeft: {
+        flexDirection: "row",
         alignItems: "center",
         bottom: 20,
-        gap: 10 
+        gap: 10
     },
     headerTitle: {
         fontSize: 30,
@@ -552,7 +718,7 @@ const styles = StyleSheet.create({
     topicIcon: { fontSize: 16, marginRight: 6 },
     topicText: { color: "#245b55", fontWeight: "600" },
 
-    chat: { 
+    chat: {
         bottom: 40,
         height: 400,
         top: 15,

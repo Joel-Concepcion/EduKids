@@ -8,48 +8,52 @@ import Clase from "./src/view/clase/clase";
 import Alumnos from "./src/view/clase/vistaAlumnos";
 
 const fetchFonts = () => {
-    return Font.loadAsync({
-        'CenturyGothic': require('./src/assets/font/3394-font.ttf'),
-        'CenturyGothic-Bold': require('./src/assets/font/4410-font.ttf'),
-    });
+  return Font.loadAsync({
+    'CenturyGothic': require('./src/assets/font/3394-font.ttf'),
+    'CenturyGothic-Bold': require('./src/assets/font/4410-font.ttf'),
+  });
 };
 
 const Tab = createBottomTabNavigator();
 
-export default function ClaseNavegacion() {
-   const [fontsLoaded, setFontsLoaded] = useState(false);
+export default function ClaseNavegacion({ route }) {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const { clase } = route.params || {};
+  console.log("ClaseNavegacion recibió:", clase);
 
-     useEffect(() => {
-          fetchFonts().then(() => setFontsLoaded(true));
-      }, []);
-  
-      if (!fontsLoaded) {
-          return null;
-      }
+  useEffect(() => {
+    fetchFonts().then(() => setFontsLoaded(true));
+  }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <Tab.Navigator initialRouteName="Clase" 
-    screenOptions={{
-      tabBarActiveTintColor: "#3E8FCC", 
-      tabBarStyle: {
-      backgroundColor: '#99E7D9', 
-      borderTopWidth: 2,
-      borderTopColor: '#34B0A6',
-      height: 70,
-      paddingBottom: 10,
-      paddingTop: 5,
-      height: 120,
-    },
-    tabBarActiveTintColor: '#34B0A6',
-    tabBarInactiveTintColor: '#ffffff',
-    tabBarLabelStyle: {
-      fontSize: 12,
-      fontWeight: 'bold',
-      fontFamily: 'CenturyGothic',
-    },}}>
+    <Tab.Navigator initialRouteName="Clase"
+      screenOptions={{
+        tabBarActiveTintColor: "#3E8FCC",
+        tabBarStyle: {
+          backgroundColor: '#99E7D9',
+          borderTopWidth: 2,
+          borderTopColor: '#34B0A6',
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 5,
+          height: 120,
+        },
+        tabBarActiveTintColor: '#34B0A6',
+        tabBarInactiveTintColor: '#ffffff',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: 'bold',
+          fontFamily: 'CenturyGothic',
+        },
+      }}>
       <Tab.Screen
         name="Clase"
         component={Clase}
+        initialParams={{ clase }}
         options={{
           tabBarIcon: ({ focused }) => (
             <Image

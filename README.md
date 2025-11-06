@@ -67,8 +67,6 @@ npx react-native run-ios
 
 ![App Screenshot](src/assets/screenshot//Screenshot_2025-09-07-10-05-33-169_host.exp.exponent.jpg)
 
-
-
 ## Características
 
 Gestión docente

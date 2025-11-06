@@ -29,9 +29,10 @@ export default function inicioAlumno() {
 
             <View style={styles.footer}>
                 <Image style={{ top: 40, }} source={require('../../assets/avatar/Ellipse 3.png')} />
-                <Text style={[styles.font, styles.tex1]}>nombre{ }</Text>
+                <Text style={[styles.font, styles.tex1]}>José Alejandro González García{ }</Text>
             </View>
 
+           
             <TouchableOpacity style={{ left: 300, top: 700, zIndex: 10, position: 'absolute', }}>
                 <Image source={require('../../assets/avatar/RE (1).png')} />
             </TouchableOpacity>
@@ -41,17 +42,17 @@ export default function inicioAlumno() {
                     <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 18.png')} />
                 </TouchableOpacity>
                 <TouchableOpacity>
-                    <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 18.png')} />
+                    <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 19.png')} />
                 </TouchableOpacity>
                 <TouchableOpacity>
-                    <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 18.png')} />
+                    <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 20.png')} />
                 </TouchableOpacity>
                 <TouchableOpacity>
                     <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 18.png')} />
                 </TouchableOpacity>
             </ScrollView>
 
-            <Image style={{ position: 'absolute', }} source={require('../../assets/Proyecto nuevo (2) 1.png')} />
+             {/*<Image style={{ position: 'absolute', }} source={require('../../assets/Proyecto nuevo (2) 1.png')} />*/}
 
 
 

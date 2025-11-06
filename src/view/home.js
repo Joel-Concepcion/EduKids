@@ -3,6 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as Font from 'expo-font';
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, query, where } from "firebase/firestore";
+import appFirebase from "../model/db";
+
+const db = getFirestore(appFirebase);
+const auth = getAuth();
 
 const fetchFonts = () => {
     return Font.loadAsync({
@@ -10,18 +16,60 @@ const fetchFonts = () => {
         'CenturyGothic-Bold': require('../assets/font/4410-font.ttf'),
     });
 };
+const bannerMap = {
+    'Rectangle18.png': require('../assets/bannerClase/Rectangle 18.png'),
+    'Rectangle19.png': require('../assets/bannerClase/Rectangle 19.png'),
+    'Rectangle20.png': require('../assets/bannerClase/Rectangle 20.png'),
+    'Rectangle21.png': require('../assets/bannerClase/Rectangle 21.png'),
+    'Rectangle22.png': require('../assets/bannerClase/Rectangle 22.png'),
+};
+
 
 export default function home() {
     const navigation = useNavigation();
     const [fontsLoaded, setFontsLoaded] = useState(false);
+    const [clases, setClases] = useState([]);
+
+
 
     useEffect(() => {
         fetchFonts().then(() => setFontsLoaded(true));
-    }, []);
+
+        const obtenerClases = async () => {
+            try {
+                const usuario = auth.currentUser;
+                if (!usuario) return;
+
+                const clasesRef = collection(db, "clases");
+                const consulta = query(clasesRef, where("docenteId", "==", usuario.uid));
+                const resultado = await getDocs(consulta);
+
+                const clasesUsuario = resultado.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                setClases(clasesUsuario);
+            } catch (error) {
+                console.error("Error al obtener clases:", error);
+            }
+        };
+
+        const unsubscribe = navigation.addListener('focus', obtenerClases);
+        return unsubscribe;
+    }, [navigation]);
+
+
+
+    /*useEffect(() => {
+        fetchFonts().then(() => setFontsLoaded(true));
+    }, []);*/
 
     if (!fontsLoaded) {
         return null;
     }
+
+    //Capturando banner de la calse 
 
 
     return (
@@ -38,7 +86,7 @@ export default function home() {
                 <View style={{ bottom: 300 }}>
                     <Text style={{ fontSize: 18, marginBottom: 10, fontFamily: 'CenturyGothic-Bold', left: 10 }}>Actividades disponibles:</Text>
                     <View style={styles.contenIcons} >
-                        <TouchableOpacity style={styles.bt2} onPress={() => navigation.navigate("Juego de Sumas")}>
+                        <TouchableOpacity style={styles.bt2} onPress={() => navigation.navigate("Lista actividades")}>
                             <Image source={require('../../src/assets/icon/mate.png')} style={styles.iconImage} />
                             <Text style={styles.iconText}>Matemáticas</Text>
                         </TouchableOpacity>
@@ -65,23 +113,27 @@ export default function home() {
                     </TouchableOpacity>
                 </View>
                 <Text style={{ color: '#000', fontSize: 18, fontFamily: 'CenturyGothic-Bold', right: 160, bottom: 240 }}>Clases:</Text>
-                <ScrollView style={{
-                    width: Dimensions.get('window').width - 10,
-                    height: 150,
-                    bottom: 240
-                }}>
-                    <TouchableOpacity style={styles.banContainer}>
+                <ScrollView
+                    style={{
+                        width: Dimensions.get('window').width - 10,
+                        height: 150,
+                        bottom: 240
+                    }}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {clases.map((clase) => (
+                        <View key={clase.id} style={styles.ViewConten}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Clase', { clase })}>
+                                <Image source={bannerMap[clase.banner]} style={styles.imaClas} />
+                                <Text style={styles.textClas}>Clase: {clase.nombreClase}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                    {/*<TouchableOpacity style={styles.banContainer}>
                         <Image style={styles.iBan} source={require('../../src/assets/bannerClase/Rectangle 18.png')} />
                         <Text style={styles.textCla}>Clase: 1A</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.banContainer}>
-                        <Image style={styles.iBan} source={require('../../src/assets/bannerClase/Rectangle 18.png')} />
-                        <Text style={styles.textCla}>Clase: 1A</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.banContainer}>
-                        <Image style={styles.iBan} source={require('../../src/assets/bannerClase/Rectangle 18.png')} />
-                        <Text style={styles.textCla}>Clase: 1A</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>*/}
                 </ScrollView>
                 <TouchableOpacity style={styles.botonIA} onPress={() => navigation.navigate("IA")}>
                     <Image source={require('../../src/assets/IA (2).png')} style={styles.IA} />
@@ -199,6 +251,29 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
 
-    }
+    },
+    ViewConten: {
+        padding: 20,
+        marginTop: 50,
+        bottom: 60,
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    imaClas: {
+        width: 374,
+        height: 170,
+        borderColor: '#000',
+        borderWidth: 3,
+        borderRadius: 20,
+        opacity: 0.5,
+    },
+    textClas: {
+        fontFamily: 'CenturyGothicBold1a',
+        fontSize: 15,
+        marginTop: -120,
+        color: '#000',
+        left: 130,
+        bottom: 30,
+    },
 
 });
