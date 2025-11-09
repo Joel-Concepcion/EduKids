@@ -30,12 +30,12 @@ export default function Clase() {
   }, []);
 
   if (!fontsLoaded || !clase) return null;
-
+  // <Image style={styles.imM}  source={{uri: clase.profileImage || 'https://randomuser.me/api/portraits/women/44.jpg',}}/>
   return (
     <View style={styles.container}>
       {/* Encabezado con imagen y nombre del docente */}
       <View style={styles.header}>
-        <Image style={styles.imM} source={require('../../assets/maestra.jpg')} />
+        <Image style={styles.imM}  source={{uri: clase.profileImage}}/>
         <Text style={[styles.tex, styles.font]}>
           Profe: {clase.docenteNombre || clase.docenteId || 'Sin nombre'}
         </Text>
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
   tex: {
     left: 50,
     fontSize: 20,
-    top: 10,
-    marginBottom: 5,
+    bottom: 50,
+    marginBottom: 0,
   },
   tex1: {
     backgroundColor: '#34B0A6',

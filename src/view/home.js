@@ -32,7 +32,7 @@ export default function home() {
 
 
 
-    useEffect(() => {
+    /*useEffect(() => {
         fetchFonts().then(() => setFontsLoaded(true));
 
         const obtenerClases = async () => {
@@ -47,6 +47,40 @@ export default function home() {
                 const clasesUsuario = resultado.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
+                }));
+
+                setClases(clasesUsuario);
+            } catch (error) {
+                console.error("Error al obtener clases:", error);
+            }
+        };
+
+        const unsubscribe = navigation.addListener('focus', obtenerClases);
+        return unsubscribe;
+    }, [navigation]);*/
+
+    useEffect(() => {
+        fetchFonts().then(() => setFontsLoaded(true));
+
+        const obtenerClases = async () => {
+            try {
+                const usuario = auth.currentUser;
+                if (!usuario) return;
+
+                const clasesRef = collection(db, "clases");
+                const consulta = query(clasesRef, where("docenteId", "==", usuario.uid));
+                const resultado = await getDocs(consulta);
+
+                //Obtener datos del docente desde "users"
+                const userRef = doc(db, "users", usuario.uid);
+                const userDoc = await getDoc(userRef);
+                const datosDocente = userDoc.exists() ? userDoc.data() : {};
+
+                const clasesUsuario = resultado.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    docenteNombre: datosDocente.nombre || "Sin nombre",
+                    profileImage: datosDocente.profileImage || "https://randomuser.me/api/portraits/women/44.jpg"
                 }));
 
                 setClases(clasesUsuario);

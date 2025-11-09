@@ -4,7 +4,8 @@ import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import { useFocusEffect } from '@react-navigation/native';
 import { useFonts, Kavoon_400Regular } from 'expo-font';
-
+import { auth, db } from '../../../model/db';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const imagenes = {
   1: require('../../../assets/game/img mate/numero 1.jpeg'),
@@ -32,14 +33,11 @@ const mensajesMotivadores = [
 export default function Juego1Suma({ navigation }) {
   const TOTAL_EJERCICIOS = 6;
 
-  // Cargar fuentes
   const [fontsLoaded] = useFonts({
     CenturyGothic: require('../../../assets/font/3394-font.ttf'),
-    CenturyGothicBold1a: require('../../../assets/font/4410-font.ttf'),
+    CenturyGothicBold: require('../../../assets/font/4410-font.ttf'),
     Kavoon_400Regular,
-
   });
-
 
   const getRandomSum = (max) => {
     const num1 = Math.floor(Math.random() * max) + 1;
@@ -64,6 +62,8 @@ export default function Juego1Suma({ navigation }) {
   const [completed, setCompleted] = useState(0);
   const [finished, setFinished] = useState(false);
   const [confeti, setConfeti] = useState('');
+  const [errores, setErrores] = useState(0);
+  const [mostrarGif, setMostrarGif] = useState(false);
 
   useEffect(() => {
     setMaxNumber(level === 1 ? 5 : level === 2 ? 10 : 10);
@@ -108,57 +108,75 @@ export default function Juego1Suma({ navigation }) {
     }
   }, [completed, maxNumber]);
 
-  const [mostrarGif, setMostrarGif] = useState(false);
-
   const handleAnswer = async (value) => {
-  const reproducirSonidoSeleccion = async () => {
-    const { sound } = await Audio.Sound.createAsync(
-      require('../../../assets/sound/tapp.mp3'),
-      { shouldPlay: true }
-    );
-    await sound.playAsync();
+    const reproducirSonidoSeleccion = async () => {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../../../assets/sound/tapp.mp3'),
+        { shouldPlay: true }
+      );
+      await sound.playAsync();
+    };
+
+    await reproducirSonidoSeleccion();
+
+    if (value === problem.result) {
+      const mensaje = `¡Excelente! ${value} es la respuesta correcta`;
+      Speech.speak(mensaje, { language: 'es' });
+      setMostrarGif(true);
+      setTimeout(() => {
+        setMostrarGif(false);
+        setCompleted((prev) => prev + 1);
+      }, 2000);
+    } else {
+      setErrores((prev) => prev + 1);
+      const motivador = mensajesMotivadores[Math.floor(Math.random() * mensajesMotivadores.length)];
+      Speech.speak(motivador, { language: 'es' });
+    }
   };
 
-  await reproducirSonidoSeleccion();
-
-  if (value === problem.result) {
-    const mensaje = `¡Excelente! ${value} es la respuesta correcta`;
-    Speech.speak(mensaje, { language: 'es' });
-    setMostrarGif(true);
-
-    setTimeout(() => {
-      setMostrarGif(false);
-      setCompleted((prev) => prev + 1);
-    }, 2000);
-  } else {
-    const motivador = mensajesMotivadores[Math.floor(Math.random() * mensajesMotivadores.length)];
-    Speech.speak(motivador, { language: 'es' });
-  }
-};
-
-
-  {
-    mostrarGif && (
-      <Image
-        source={imagenes[12]}
-        style={styles.gif}
-        resizeMode="contain"
-      />
-    )
-  }
-
-
-
   if (finished) {
-    Speech.speak('¡Felicidades! Has completado todos los ejercicios', { language: 'es' });
+    const puntos = Math.max(10 - errores, 0);
+    const usuario = auth?.currentUser;
+
+    if (usuario && usuario.uid) {
+      const progresoRef = doc(db, 'progreso', usuario.uid);
+
+      const guardarProgreso = async () => {
+        try {
+          const progresoDoc = await getDoc(progresoRef);
+          const dataActual = progresoDoc.exists() ? progresoDoc.data() : {};
+
+          const nuevoProgreso = {
+            ...dataActual,
+            Matemática: {
+              ...(dataActual.Matemática || {}),
+              juego1Suma: {
+                puntos,
+                fecha: new Date().toISOString().split('T')[0],
+              },
+            },
+          };
+
+          await setDoc(progresoRef, nuevoProgreso);
+        } catch (error) {
+          console.error('Error al guardar el progreso:', error);
+        }
+      };
+
+      guardarProgreso();
+    }
+
+    Speech.speak(`¡Felicidades! Has completado todos los ejercicios con ${puntos} puntos`, { language: 'es' });
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>¡Juego completado!</Text>
-        <Text style={styles.problem}>Has resuelto los 6 ejercicios 🎉</Text>
+        <Text style={styles.problem}>Obtuviste {puntos} puntos 🎉</Text>
         <TouchableOpacity
           style={styles.card}
           onPress={() => {
             setCompleted(0);
+            setErrores(0);
             setFinished(false);
             setConfeti('');
           }}
@@ -173,14 +191,15 @@ export default function Juego1Suma({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Ejercicio {completed + 1} de {TOTAL_EJERCICIOS}</Text>
 
-      {/* Imágenes del problema */}
       <View style={styles.problemImages}>
         <Image source={imagenes[problem.num1]} style={styles.problemImage} resizeMode="contain" />
         <Image source={imagenes[11]} style={styles.signImage} resizeMode="contain" />
         <Image source={imagenes[problem.num2]} style={styles.problemImage} resizeMode="contain" />
       </View>
 
-      {confeti !== '' && <Text style={styles.confeti}>{confeti}</Text>}
+      {mostrarGif && (
+        <Image source={imagenes[12]} style={styles.gif} resizeMode="contain" />
+      )}
 
       <View style={styles.options}>
         {options.map((opt, idx) => (

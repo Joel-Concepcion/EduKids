@@ -7,7 +7,7 @@ import { useFonts, Kavoon_400Regular } from '@expo-google-fonts/kavoon';
 import { Picker } from '@react-native-picker/picker';
 import { getFirestore, addDoc, serverTimestamp, collection, doc, setDoc, getDocs, query, where, getDoc, updateDoc } from 'firebase/firestore';
 import appFirebase from '../../model/db';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 
 const db = getFirestore(appFirebase);
 const auth = getAuth(appFirebase);
@@ -157,6 +157,14 @@ export default function login() {
             const userCredential = await createUserWithEmailAndPassword(auth, correoElectronico, contraseña);
             const usuario = userCredential.user;
 
+            // Actualizar nombre en Firebase Auth
+            await updateProfile(usuario, {
+                displayName: nombres + " " + apellidos
+            });
+
+            //Enviar verificación de correo
+            await sendEmailVerification(usuario);
+
             const id = await obtenerNuevoIdDocente();
 
             // Guardar datos adicionales en Firestore
@@ -236,11 +244,19 @@ export default function login() {
     //login alumno
     const validarAlumno = async () => {
         if (!loginNombreColegio || !loginCodigoEstu) {
-            Alert.alert("Campos vacíos", "Ingresá el nombre del colegio y codigo del estudiante.");
+            Alert.alert("Campos vacíos", "Ingresá el nombre del colegio y código del estudiante.");
             return;
         }
 
         try {
+            // 🔐 Autenticación con Firebase Auth
+            const correo = `${loginCodigoEstu}@edukid.com`;
+            const contraseña = loginCodigoEstu;
+
+            const credenciales = await signInWithEmailAndPassword(auth, correo, contraseña);
+            const alumno = credenciales.user;
+
+            // 🔍 Validación adicional en Firestore (opcional pero recomendable)
             const consulta = query(
                 collection(db, "alumnos"),
                 where("nombre_colegio", "==", loginNombreColegio),
@@ -250,18 +266,23 @@ export default function login() {
             const resultado = await getDocs(consulta);
 
             if (resultado.empty) {
-                Alert.alert("Credenciales incorrectas", "Verificá el nombre del colegio y su codigo.");
-            } else {
-                Alert.alert("Bienvenido", "Inicia a interactuar de manera educativa");
-                navigation.navigate("inicioAlumno");
+                Alert.alert("Datos no coinciden", "El colegio no coincide con el código del alumno.");
+                return;
             }
+
+            Alert.alert("Bienvenido", "Inicia a interactuar de manera educativa");
+            navigation.navigate("inicioAlumno");
+
         } catch (error) {
             console.error("Error en login:", error);
-            Alert.alert("Error", "No se pudo acceder al perfil del estudiante");
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                Alert.alert("Credenciales incorrectas", "Verificá el código del alumno.");
+            } else {
+                Alert.alert("Error", "No se pudo acceder al perfil del estudiante.");
+            }
         }
-
     };
-
+    
     if (!fontsLoaded) {
         return null;
     }
