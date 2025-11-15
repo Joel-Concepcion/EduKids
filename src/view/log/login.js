@@ -8,6 +8,7 @@ import { Picker } from '@react-native-picker/picker';
 import { getFirestore, addDoc, serverTimestamp, collection, doc, setDoc, getDocs, query, where, getDoc, updateDoc } from 'firebase/firestore';
 import appFirebase from '../../model/db';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
+import { NavigationContainer } from '@react-navigation/native';
 
 const db = getFirestore(appFirebase);
 const auth = getAuth(appFirebase);
@@ -45,6 +46,7 @@ export default function login() {
         CenturyGothic: require('../../assets/font/3394-font.ttf'),
         CenturyGothicBold: require('../../assets/font/4410-font.ttf'),
     });
+    
 
     const obtenerNuevoIdDocente = async () => {
         const contadorRef = doc(db, "contadores", "docente");
@@ -249,7 +251,7 @@ export default function login() {
         }
 
         try {
-            // 🔐 Autenticación con Firebase Auth
+            // Autenticación con Firebase Auth
             const correo = `${loginCodigoEstu}@edukid.com`;
             const contraseña = loginCodigoEstu;
 
@@ -282,7 +284,7 @@ export default function login() {
             }
         }
     };
-    
+
     if (!fontsLoaded) {
         return null;
     }
@@ -310,6 +312,7 @@ export default function login() {
                     <Text style={[styles.tex1, styles.fon1]}>Registro</Text>
                     <View style={styles.pickerStyle}>
                         <Picker
+                            testID="role-picker"
                             selectedValue={rol}
                             onValueChange={(itemValue) => setRol(itemValue)}
                             style={[styles.picker, styles.fon2]}
@@ -319,6 +322,7 @@ export default function login() {
                             <Picker.Item label="Alumno" value="Alumno" />
                         </Picker>
                     </View>
+                    {/*
                     {rol === 'Alumno' && (
                         <View style={styles.logEstu}>
                             <Text style={[styles.tex5, styles.fon1]}>Nombre del colegio </Text>
@@ -333,9 +337,10 @@ export default function login() {
 
                         </View>
                     )}
+                        */}
 
 
-                    {rol === 'Docente' && (
+                    {/*{rol === 'Docente' && (
                         <View style={styles.logDocen}>
                             <Text style={[styles.tex5, styles.fon1]}>Nombre del colegio </Text>
                             <TextInput style={[styles.texImpul, styles.fon3]} value={nombreColegio} onChangeText={setNombreColegio}></TextInput>
@@ -382,6 +387,116 @@ export default function login() {
 
                         </View>
 
+                    )}*/}
+                    {rol === 'Docente' && (
+                        <View style={styles.logDocen}>
+                            <Text style={[styles.tex5, styles.fon1]}>Nombre del colegio</Text>
+                            <TextInput
+                                testID="colegio-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={nombreColegio}
+                                onChangeText={setNombreColegio}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Nombres</Text>
+                            <TextInput
+                                testID="nombres-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={nombres}
+                                onChangeText={setNombres}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Apellidos</Text>
+                            <TextInput
+                                testID="apellidos-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={apellidos}
+                                onChangeText={setApellidos}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Correo electrónico</Text>
+                            <TextInput
+                                testID="email-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={correoElectronico}
+                                onChangeText={setCorreoElectronico}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Contraseña</Text>
+                            <TextInput
+                                testID="password-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                secureTextEntry={!verPassword1}
+                                value={contraseña}
+                                onChangeText={setContraseña}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Confirmar contraseña</Text>
+                            <TextInput
+                                testID="confirm-password-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                secureTextEntry={!verPassword}
+                                value={confirmarContraseña}
+                                onChangeText={setConfirmarContraseña}
+                            />
+
+                            <TouchableOpacity style={styles.booton} onPress={registroDocente}>
+                                <Text style={[styles.tex2, styles.fon1]}>Registrar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {/*{rol === 'Alumno' && (
+                        <View style={styles.logEstu}>
+                            <Text style={[styles.tex5, styles.fon1]}>Nombre del colegio</Text>
+                            <TextInput
+                                testID="colegio-alumno-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={loginNombreColegio}
+                                onChangeText={setLoginNombreColegio}
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Codigo del alumno</Text>
+                            <TextInput
+                                testID="codigo-alumno-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={loginCodigoEstu}
+                                onChangeText={setLoginCodigoEstu}
+                            />
+
+                            <TouchableOpacity style={styles.booton} onPress={validarAlumno}>
+                                <Text style={[styles.tex2, styles.fon1]}>Aceder</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}*/}
+                    {rol === 'Alumno' && (
+                        <View style={styles.logEstu}>
+                            <Text style={[styles.tex5, styles.fon1]}>Nombre del colegio</Text>
+                            <TextInput
+                                testID="colegio-alumno-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={loginNombreColegio}
+                                onChangeText={setLoginNombreColegio}
+                                // Opcional: agregar placeholder para mejor UX
+                                placeholder="Ingresá tu colegio"
+                                placeholderTextColor="#rgba(255,255,255,0.7)"
+                            />
+
+                            <Text style={[styles.tex5, styles.fon1]}>Codigo del alumno</Text>
+                            <TextInput
+                                testID="codigo-alumno-input"
+                                style={[styles.texImpul, styles.fon3]}
+                                value={loginCodigoEstu}
+                                onChangeText={setLoginCodigoEstu}
+                                // Opcional: agregar placeholder para mejor UX
+                                placeholder="Ingresá tu código"
+                                placeholderTextColor="#rgba(255,255,255,0.7)"
+                            />
+
+                            <TouchableOpacity style={styles.booton} onPress={validarAlumno}>
+                                <Text style={[styles.tex2, styles.fon1]}>Aceder</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     {rol === null && (
                         <Image style={styles.ima10} source={require('../../assets/log/nino.png')} />
@@ -417,12 +532,25 @@ export default function login() {
                 <View style={styles.login}>
                     <Text style={[styles.tex1, styles.fon1]}>Login</Text>
 
-                    <Text style={[styles.tex5, styles.fon1]}>Correo electronico</Text>
-                    <TextInput style={[styles.texImpul, styles.fon3]} value={loginCorreo}
-                        onChangeText={setLoginCorreo}></TextInput>
+                    <Text style={[styles.tex5, styles.fon1]} >Correo electronico</Text>
+                    <TextInput testID="email-input"
+                        style={[styles.texImpul, styles.fon3]}
+                        value={loginCorreo}
+                        onChangeText={setLoginCorreo}
+                        // Opcional: agregar placeholder para mejor UX
+                        placeholder="Ingresá tu correo"
+                        placeholderTextColor="#rgba(255,255,255,0.7)"
+                    ></TextInput>
 
                     <Text style={[styles.tex5, styles.fon1]}>Contraseña</Text>
-                    <TextInput style={[styles.texImpul, styles.fon3]} secureTextEntry={!verPassword3} value={loginContraseña} onChangeText={setLoginContraseña}></TextInput>
+                    <TextInput testID="password-input"
+                        style={[styles.texImpul, styles.fon3]}
+                        secureTextEntry={!verPassword3} value={loginContraseña}
+                        onChangeText={setLoginContraseña}
+                        // Opcional: agregar placeholder para mejor UX
+                        placeholder="Ingresá tu contraseña"
+                        placeholderTextColor="#rgba(255,255,255,0.7)"
+                    ></TextInput>
                     <TouchableOpacity onPress={() => setVerPassword3(!verPassword3)}>
                         <Image
                             source={
@@ -434,13 +562,14 @@ export default function login() {
                         />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.booton} onPress={validarLogin}>
+                    <TouchableOpacity style={styles.booton} onPress={validarLogin} testID="login-submit-button">
                         <Text style={[styles.tex2, styles.fon1]}>Iniciar</Text>
                     </TouchableOpacity>
 
                     <Text style={[styles.tex3, styles.fon2]}>
                         Registrarse:
                         <TouchableOpacity
+                            testID="switch-to-register-button"
                             style={styles.bootonLog}
                             onPress={() => { setMostrarLogin(false); setMostrarRegistro(true); }}
                         >

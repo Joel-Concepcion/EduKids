@@ -8,6 +8,7 @@ import {
   Image,
   FlatList,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
@@ -31,6 +32,7 @@ export default function ListaActividades() {
   const [mostrarClases, setMostrarClases] = useState(false);
   const [actividadSeleccionada, setActividadSeleccionada] = useState('Juego de Sumas');
   const [clases, setClases] = useState([]);
+
 
   useEffect(() => {
     const cargarClases = async () => {
@@ -116,20 +118,35 @@ export default function ListaActividades() {
         </View>
       )}
 
-      {mostrarClases && (
-        <FlatList
-          data={clases}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+      {/*mostrarClases && (*/}
+      <Modal visible={mostrarClases} transparent animationType="slide">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000000aa' }}>
+          <View style={{ backgroundColor: '#99E7D9', padding: 20, borderRadius: 10, width: '90%', minHeight: '50%', }}>
             <TouchableOpacity
-              style={styles.claseItem}
-              onPress={() => handleSeleccionClase(item.id)}
+              style={styles.closeButton}
+              onPress={() => {
+                setMostrarClases(false);
+                //setAlumnoSeleccionado(null);
+                //setDatosGrafico(null);
+              }}
             >
-              <Text>{item.nombreClase || item.nombre}</Text>
+              <Text style={styles.closeButtonText}>❌</Text>
             </TouchableOpacity>
-          )}
-        />
-      )}
+            <FlatList
+              data={clases}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.claseItem}
+                  onPress={() => handleSeleccionClase(item.id)}
+                >
+                  <Text>{item.nombreClase || item.nombre}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -160,9 +177,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     marginVertical: 5,
     borderRadius: 5,
+    width: Dimensions.get('window').width * 0.8,
+    alignItems: 'center',
+    height: 50,
+    justifyContent: 'center',
   },
   textto: {
     color: '#ffffff',
     fontWeight: 'bold',
   },
+  closeButton:{
+    left: '90%',
+    marginBottom: 15,
+  },
+  closeButtonText:{
+    fontSize: 25,
+  }
 });

@@ -18,7 +18,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 
-//Mapa estático de avatares
+// Mapa estático de avatares
 const avatarMap = {
   'Ellipse 3.png': require('../../assets/avatar/Ellipse 3.png'),
   'Ellipse 4.png': require('../../assets/avatar/Ellipse 4.png'),
@@ -34,6 +34,9 @@ export default function PerfilAlumno() {
   const [nombreAlumno, setNombreAlumno] = useState('');
   const [avatarSeleccionado, setAvatarSeleccionado] = useState('Ellipse 3.png');
   const [docRefAlumno, setDocRefAlumno] = useState(null);
+  const [nombreColegio, setNombreColegio] = useState('');
+  const [codigoAlumno, setCodigoAlumno] = useState('');
+  const [correo, setCorreo] = useState('');
 
   useEffect(() => {
     const cargarDatosAlumno = async () => {
@@ -50,9 +53,15 @@ export default function PerfilAlumno() {
         if (!resultado.empty) {
           const docAlumno = resultado.docs[0];
           const datos = docAlumno.data();
+
+          const avatarValido = avatarMap[datos.avatar] ? datos.avatar : 'Ellipse 3.png';
+
           setNombreAlumno(datos.nombres_apellidos || '');
-          setAvatarSeleccionado(datos.avatar || 'Ellipse 3.png');
+          setAvatarSeleccionado(avatarValido);
           setDocRefAlumno(docAlumno.ref);
+          setNombreColegio(datos.nombre_colegio || '');
+          setCodigoAlumno(datos.codigo_alumno || '');
+          setCorreo(datos.correo || '');
         }
       } catch (error) {
         console.error('Error al cargar datos del alumno:', error);
@@ -76,13 +85,17 @@ export default function PerfilAlumno() {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.nombre, styles.font]}>{nombreAlumno}</Text>
 
       <Image
-        source={avatarMap[avatarSeleccionado]}
+        source={avatarMap[avatarSeleccionado] || avatarMap['Ellipse 3.png']}
         style={styles.avatarPrincipal}
       />
+      <Text style={[styles.nombre, styles.font]}>{nombreAlumno}</Text>
 
+      <Text style={[styles.subtitulo, styles.font]}>Colegio: {nombreColegio}</Text>
+      <Text style={[styles.subtitulo, styles.font]}>Código: {codigoAlumno}</Text>
+      {/*<Text style={[styles.subtitulo, styles.font]}>Correo: {correo}</Text>*/}
+    
       <Text style={[styles.subtitulo, styles.font]}>Seleccioná tu avatar</Text>
 
       <ScrollView horizontal style={styles.avatarScroll}>
@@ -105,7 +118,7 @@ export default function PerfilAlumno() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#99E7D9',
     alignItems: 'center',
     paddingTop: 50,
   },
@@ -118,7 +131,7 @@ const styles = StyleSheet.create({
   },
   subtitulo: {
     fontSize: 18,
-    marginTop: 20,
+    marginTop: 10,
   },
   avatarPrincipal: {
     width: 150,

@@ -59,13 +59,13 @@ export default function registroAlumno() {
       const nuevaLista = listaAlumnos.map(al =>
         al.codigo_alumno === codigoOriginal
           ? {
-              ...al,
-              nombres_apellidos: nombreAlumno,
-              codigo_alumno: codigoAlumno,
-              nombre_colegio: nombreColegio,
-              fecha_registro: obtenerFechaActual(),
-              rolId: '3',
-            }
+            ...al,
+            nombres_apellidos: nombreAlumno,
+            codigo_alumno: codigoAlumno,
+            nombre_colegio: nombreColegio,
+            fecha_registro: obtenerFechaActual(),
+            rolId: '3',
+          }
           : al
       );
       setListaAlumnos(nuevaLista);
@@ -91,7 +91,7 @@ export default function registroAlumno() {
     setCodigoAlumno('');
   };
 
-  const guardarRegistro = async () => {
+  /*const guardarRegistro = async () => {
     try {
       const alumnosRef = collection(db, 'alumnos');
       const snapshot = await getDocs(alumnosRef);
@@ -125,13 +125,16 @@ export default function registroAlumno() {
           }
         }
 
-        const alumnoDoc = doc(alumnosRef);
+        const alumnoDoc = doc(db, 'alumnos', uid);
         await setDoc(alumnoDoc, {
           ...alumno,
           id,
           uid,
           año_registro: obtenerAñoActual(),
           correo,
+          avatar: 'Ellipse 3.png', // solo el nombre del archivo como string
+          clases: [],
+          progreso: {},
         });
       }
 
@@ -154,7 +157,89 @@ export default function registroAlumno() {
       Alert.alert('Error', 'Hubo un problema al guardar los datos.');
       return false;
     }
-  };
+  };*/
+  const guardarRegistro = async () => {
+  try {
+    const alumnosRef = collection(db, 'alumnos');
+    const snapshot = await getDocs(alumnosRef);
+    const cantidad = snapshot.size;
+
+    const alumnosValidos = listaAlumnos.filter(al =>
+      al.nombres_apellidos?.trim() &&
+      al.codigo_alumno?.trim() &&
+      al.nombre_colegio?.trim()
+    );
+
+    if (alumnosValidos.length === 0) {
+      Alert.alert('Sin datos válidos', 'No hay alumnos para guardar.');
+      return false;
+    }
+
+    for (const [index, alumno] of alumnosValidos.entries()) {
+      const id = cantidad + index + 1;
+      const correo = `${alumno.codigo_alumno}@edukid.com`;
+      const contraseña = alumno.codigo_alumno;
+
+      let uid = null;
+      try {
+        const credenciales = await createUserWithEmailAndPassword(auth, correo, contraseña);
+        uid = credenciales.user.uid;
+      } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+          console.warn(`El alumno ${alumno.codigo_alumno} ya tiene cuenta.`);
+          // Si el usuario ya existe, necesitas obtener su UID de otra manera
+          // Por ahora, saltamos este alumno
+          continue;
+        } else {
+          console.warn(`Error al crear cuenta:`, error.message);
+          continue; // Saltar este alumno si hay error
+        }
+      }
+
+      // Solo crear el documento si tenemos un UID válido
+      if (uid) {
+        const alumnoDoc = doc(db, 'alumnos', uid);
+        await setDoc(alumnoDoc, {
+          ...alumno,
+          id,
+          uid,
+          año_registro: obtenerAñoActual(),
+          correo,
+          avatar: 'Ellipse 3.png',
+          clases: [],
+          progreso: {},
+        });
+      }
+    }
+
+    // Solo crear la clase si se guardó al menos un alumno
+    const alumnosGuardados = alumnosValidos.filter((_, index) => {
+      // Aquí podrías agregar lógica para verificar cuáles se guardaron realmente
+      return true;
+    });
+
+    if (alumnosGuardados.length > 0) {
+      const claseRef = doc(collection(db, 'clases'), obtenerAñoActual().toString());
+      await setDoc(claseRef, {
+        año: obtenerAñoActual(),
+        cantidad_alumnos: alumnosGuardados.length,
+        colegio: nombreColegio,
+        fecha: obtenerFechaActual(),
+      });
+    }
+
+    Alert.alert('Registro exitoso', 'Los datos se guardaron correctamente.');
+    setListaAlumnos([]);
+    setAlumnoSeleccionado(null);
+    setNombreAlumno('');
+    setCodigoAlumno('');
+    return true;
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    Alert.alert('Error', 'Hubo un problema al guardar los datos.');
+    return false;
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -243,136 +328,136 @@ export default function registroAlumno() {
   );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#ffffff',
-    },
-    conFor: {
-        bottom: 100,
-        marginTop: 30,
-    },
-    font: {
-        fontFamily: 'CenturyGothic-Bold',
-        fontSize: 17,
-    },
-    font1: {
-        fontFamily: 'CenturyGothic',
-        fontSize: 15,
-    },
-    tex: {
-        left: 10,
-        marginTop: 10
-        ,
-    },
-    texImp: {
-        backgroundColor: '#99E7D9',
-        borderRadius: 30,
-        width: 350,
-        height: 60,
-        textAlign: 'center',
-    },
-    bt: {
-        alignItems: 'center',
-        width: 100,
-        height: 50,
-        borderRadius: 20,
-        backgroundColor: '#34B0A6',
-        left: 120,
-        top: 10,
-    },
-    tex11: {
-        top: 10,
-    },
-    contScroll: {
-        width: Dimensions.get('window').width,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 5,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  conFor: {
+    bottom: 100,
+    marginTop: 30,
+  },
+  font: {
+    fontFamily: 'CenturyGothic-Bold',
+    fontSize: 17,
+  },
+  font1: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 15,
+  },
+  tex: {
+    left: 10,
+    marginTop: 10
+    ,
+  },
+  texImp: {
+    backgroundColor: '#99E7D9',
+    borderRadius: 30,
+    width: 350,
+    height: 60,
+    textAlign: 'center',
+  },
+  bt: {
+    alignItems: 'center',
+    width: 100,
+    height: 50,
+    borderRadius: 20,
+    backgroundColor: '#34B0A6',
+    left: 120,
+    top: 10,
+  },
+  tex11: {
+    top: 10,
+  },
+  contScroll: {
+    width: Dimensions.get('window').width,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 5,
 
-    },
-    tex2: {
-        top: 8,
-        left: -90,
-    },
-    tex3: {
-        top: 8,
-        left: 20,
-    },
-    scroll: {
-        height: 10,
-    },
+  },
+  tex2: {
+    top: 8,
+    left: -90,
+  },
+  tex3: {
+    top: 8,
+    left: 20,
+  },
+  scroll: {
+    height: 10,
+  },
 
-    card: {
-        width: 330,
-        flexDirection: 'row',
-        marginRight: 15,
-        padding: 10,
-        borderRadius: 10,
-        justifyContent: 'space-between',
-    },
+  card: {
+    width: 330,
+    flexDirection: 'row',
+    marginRight: 15,
+    padding: 10,
+    borderRadius: 10,
+    justifyContent: 'space-between',
+  },
 
-    botones: {
-        marginTop: 5,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        right: 20,
+  botones: {
+    marginTop: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    right: 20,
 
-    },
-    tex51: {
-        top: 5,
-    },
-    botonesS: {
-        backgroundColor: '#00a458bf',
-        width: 100,
-        height: 40,
-        alignItems: 'center',
-        borderRadius: 10,
-        left: 50,
-    },
-    botonesSS: {
-        backgroundColor: '#fc0000bf',
-        width: 100,
-        height: 40,
-        alignItems: 'center',
-        borderRadius: 10,
-    },
-    contS: {
-        backgroundColor: '#99E7D9',
-        height: 300,
-        borderRadius: 30,
-        width: 350,
-        bottom: 70,
-    },
-    code: {
-        left: 5,
-        backgroundColor: '#34B0A6',
-        borderRadius: 20,
-        width: 100,
-        height: 50,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-        fontSize: 14,
-    },
-    code1: {
-        backgroundColor: '#34B0A6',
-        borderRadius: 20,
-        width: 200,
-        height: 50,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-        fontSize: 14,
-    },
-    btt: {
-        alignItems: 'center',
-        width: 150,
-        height: 50,
-        borderRadius: 20,
-        backgroundColor: '#34B0A6',
-        left: 110,
-        top: 70,
-    },
+  },
+  tex51: {
+    top: 5,
+  },
+  botonesS: {
+    backgroundColor: '#00a458bf',
+    width: 100,
+    height: 40,
+    alignItems: 'center',
+    borderRadius: 10,
+    left: 50,
+  },
+  botonesSS: {
+    backgroundColor: '#fc0000bf',
+    width: 100,
+    height: 40,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  contS: {
+    backgroundColor: '#99E7D9',
+    height: 300,
+    borderRadius: 30,
+    width: 350,
+    bottom: 70,
+  },
+  code: {
+    left: 5,
+    backgroundColor: '#34B0A6',
+    borderRadius: 20,
+    width: 100,
+    height: 50,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 14,
+  },
+  code1: {
+    backgroundColor: '#34B0A6',
+    borderRadius: 20,
+    width: 200,
+    height: 50,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 14,
+  },
+  btt: {
+    alignItems: 'center',
+    width: 150,
+    height: 50,
+    borderRadius: 20,
+    backgroundColor: '#34B0A6',
+    left: 110,
+    top: 70,
+  },
 
 
 })

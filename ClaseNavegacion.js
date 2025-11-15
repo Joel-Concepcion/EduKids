@@ -71,6 +71,10 @@ export default function ClaseNavegacion({ route }) {
       <Tab.Screen
         name="Alumnos"
         component={Alumnos}
+        initialParams={{
+          idClase: clase?.id,
+          clase: clase,
+        }}
         options={{
           tabBarIcon: ({ focused }) => (
             <Image

@@ -4,6 +4,8 @@ import { useFonts } from 'expo-font';
 import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs } from "firebase/firestore";
 import appFirebase from "../../model/db";
 import { getAuth } from "firebase/auth";
+import { serverTimestamp } from 'firebase/firestore';
+
 
 const db = getFirestore(appFirebase);
 const auth = getAuth();
@@ -30,7 +32,6 @@ export default function crearClase({ navigation }) {
     const [nombreClase, setNombreClase] = useState("");
     const [aula, setAula] = useState("");
 
-    // Generador de código tipo Classroom
     const generarCodigoClase = () => {
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let codigo = '';
@@ -41,7 +42,6 @@ export default function crearClase({ navigation }) {
         return codigo;
     };
 
-    // Verifica si el código ya existe
     const existeCodigoClase = async (codigo) => {
         const clasesRef = collection(db, "clases");
         const consulta = query(clasesRef, where("codigoClase", "==", codigo));
@@ -58,14 +58,14 @@ export default function crearClase({ navigation }) {
         const usuarioActual = auth.currentUser;
         if (!usuarioActual) {
             Alert.alert("No hay usuario autenticado");
-             navigation.navigate("login");
+            navigation.navigate("login");
             return;
         }
 
         const bannerSeleccionado = bannerNombres[Math.floor(Math.random() * bannerNombres.length)];
 
         try {
-            // Obtener contador
+            // Obtener o crear contador
             const contadorRef = doc(db, "metadata", "contadorClases");
             const contadorSnap = await getDoc(contadorRef);
 
@@ -73,6 +73,9 @@ export default function crearClase({ navigation }) {
             if (contadorSnap.exists()) {
                 const data = contadorSnap.data();
                 nuevoId = data.ultimoId + 1;
+                await updateDoc(contadorRef, { ultimoId: nuevoId });
+            } else {
+                await setDoc(contadorRef, { ultimoId: nuevoId });
             }
 
             // Generar código único
@@ -88,14 +91,10 @@ export default function crearClase({ navigation }) {
                 nombreClase,
                 aula,
                 banner: bannerSeleccionado,
-                creadoEn: new Date(),
-                docenteId: usuarioActual.uid, // clave para filtrar luego
+                creadoEn: serverTimestamp(), // ✅ trazabilidad real
+                actividades: [],             // ✅ inicialización estructural
+                docenteId: usuarioActual.uid,
                 docenteNombre: usuarioActual.displayName || "Sin nombre"
-            });
-
-            // Actualizar contador
-            await updateDoc(contadorRef, {
-                ultimoId: nuevoId
             });
 
             Alert.alert("Clase creada con éxito", `Código de clase: ${codigoClase}`);
@@ -122,6 +121,8 @@ export default function crearClase({ navigation }) {
                 style={styles.inputNombreClase}
                 value={nombreClase}
                 onChangeText={setNombreClase}
+                testID="input-nombre-clase" // ← AGREGAR ESTO
+                placeholder="Ingresa el nombre de la clase"
             />
             <Text style={{ fontFamily: 'CenturyGothic', fontSize: 20, bottom: 230, right: 120 }}>
                 Aula
@@ -130,8 +131,14 @@ export default function crearClase({ navigation }) {
                 style={styles.inputNombreAula}
                 value={aula}
                 onChangeText={setAula}
+                testID="input-aula" // ← AGREGAR ESTO
+                placeholder="Ingresa el aula"
             />
-            <TouchableOpacity style={styles.btCrear} onPress={crearClaseEnFirestore}>
+            <TouchableOpacity
+                style={styles.btCrear}
+                onPress={crearClaseEnFirestore}
+                testID="boton-crear-clase" // ← AGREGAR ESTO
+            >
                 <Text style={{ fontFamily: 'CenturyGothicBold1a', fontSize: 20, color: '#ffffff' }}>
                     Crear
                 </Text>

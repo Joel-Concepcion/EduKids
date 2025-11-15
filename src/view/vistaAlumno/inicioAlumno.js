@@ -52,6 +52,7 @@ export default function inicioAlumno() {
     const [nombreAlumno, setNombreAlumno] = useState('');
     const [avatarAlumno, setAvatarAlumno] = useState('Ellipse 3.png');
 
+
     // Cargar nombre y avatar del alumno por UID
     useEffect(() => {
         const cargarNombreYAvatar = async () => {
@@ -79,6 +80,10 @@ export default function inicioAlumno() {
         };
 
         cargarNombreYAvatar();
+
+        // Ejecutar cada vez que se vuelve a enfocar la pantalla
+        const unsubscribe = navigation.addListener('focus', cargarNombreYAvatar);
+        return unsubscribe;
     }, []);
 
     //Cargar clases del alumno
@@ -86,6 +91,7 @@ export default function inicioAlumno() {
         const cargarClasesAlumno = async () => {
             try {
                 const usuario = auth?.currentUser;
+                const unsubscribe = navigation.addListener('focus', cargarClasesAlumno);
                 if (!usuario || !usuario.uid) return;
 
                 const consulta = query(
@@ -186,9 +192,9 @@ export default function inicioAlumno() {
             {/* Encabezado */}
             <View style={styles.footer}>
                 <TouchableOpacity onPress={() => navigation.navigate("Perfil Alumno")}>
-                   <Image style={{ top: 40 }} source={avatarMap[avatarAlumno]} />
+                    <Image style={{ top: 40, width: 100, height: 100, borderRadius: 75, left: "10%" }} source={avatarMap[avatarAlumno] || avatarMap['Ellipse 3.png']} />
                 </TouchableOpacity>
-                <Text style={[styles.font, styles.tex1]}>{nombreAlumno}</Text>
+                <Text style={[styles.font, styles.tex1, { left: "5%", top: "50%" }]}>{nombreAlumno}</Text>
             </View>
 
             {/* Botón flotante para unirse */}
@@ -202,16 +208,23 @@ export default function inicioAlumno() {
             {/* Modal para ingresar código */}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000000aa' }}>
-                    <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '80%' }}>
+                    <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '90%', minHeight: '25%', }}>
                         <Text style={[styles.font, { fontSize: 18 }]}>Ingresá el código de la clase</Text>
                         <TextInput
                             value={codigoClase}
                             onChangeText={setCodigoClase}
-                            placeholder="Código"
-                            style={{ borderBottomWidth: 1, marginVertical: 10 }}
+                            placeholder="Ingresa el código de la clase"
+                            style={{ borderRadius: 25, backgroundColor: '#34B0A6', padding: 25, marginTop: 15, minHeight: 50, color: '#ffffff', fontFamily: 'Kavoon_400Regular' }}
                         />
-                        <Button title="Unirse" onPress={handleUnirseClase} />
-                        <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', marginTop: 25 }}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.boton2}>
+                                <Text style={styles.botonTexto}>Cancelar</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={handleUnirseClase} style={styles.boton1}>
+                                <Text style={styles.botonTexto}>Unirse</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -231,8 +244,16 @@ export default function inicioAlumno() {
                         </TouchableOpacity>
                     ))
                 ) : (
-                    <Text style={[styles.font, { marginTop: 10 }]}>No estás inscrito en ninguna clase aún.</Text>
-                )}
+                    <View style={{ alignItems: 'center', marginTop: 20 }}>
+                        <Image source={require('../../assets/Proyecto nuevo (2) 1.png')} style={{opacity: 0.5}} />
+                        <Text style={styles.font}>
+                            No estás inscrito en ninguna clase aún.
+                        </Text>
+                    </View>
+                )
+
+
+                }
             </ScrollView>
 
             {/* Decoración inferior */}
@@ -259,6 +280,9 @@ const styles = StyleSheet.create({
     },
     font: {
         fontFamily: 'Kavoon_400Regular',
+        bottom: 60,
+        left: '1%',
+        opacity: 0.5,
     },
     tex1: {
         top: 70,
@@ -280,5 +304,24 @@ const styles = StyleSheet.create({
         height: 210,
         left: 10,
         borderRadius: 30,
+    },
+    boton1: {
+        backgroundColor: '#34B0A6',
+        padding: 10,
+        borderRadius: 25,
+        width: 100,
+        alignItems: 'center',
+    },
+    boton2: {
+        backgroundColor: '#FF6B6B',
+        padding: 10,
+        borderRadius: 25,
+        width: 100,
+        alignItems: 'center',
+    },
+    botonTexto: {
+        fontFamily: 'Kavoon_400Regular',
+        color: '#fff',
+        fontSize: 16,
     }
 });

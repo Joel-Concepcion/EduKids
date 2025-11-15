@@ -10,6 +10,9 @@ import {
 import React, { useState, useEffect } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Font from 'expo-font';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../../model/db';
+
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -22,6 +25,7 @@ export default function Clase() {
   const navigation = useNavigation();
   const route = useRoute();
   const { clase } = route.params || {};
+  const [docente, setDocente] = useState(null);
 
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -29,25 +33,45 @@ export default function Clase() {
     fetchFonts().then(() => setFontsLoaded(true));
   }, []);
 
+  useEffect(() => {
+    const cargarDocente = async () => {
+      if (!clase?.docenteId) return;
+
+      try {
+        const docenteRef = doc(db, 'users', clase.docenteId); // o 'docente' si usás esa colección
+        const docenteSnap = await getDoc(docenteRef);
+
+        if (docenteSnap.exists()) {
+          setDocente(docenteSnap.data());
+        }
+      } catch (error) {
+        console.error('Error al cargar datos del docente:', error);
+      }
+    };
+
+    cargarDocente();
+  }, [clase]);
+
+
   if (!fontsLoaded || !clase) return null;
   // <Image style={styles.imM}  source={{uri: clase.profileImage || 'https://randomuser.me/api/portraits/women/44.jpg',}}/>
   return (
     <View style={styles.container}>
       {/* Encabezado con imagen y nombre del docente */}
       <View style={styles.header}>
-        <Image style={styles.imM}  source={{uri: clase.profileImage}}/>
+        <Image style={styles.imM} source={{ uri: docente?.profileImage || 'https://randomuser.me/api/portraits/men/1.jpg' }} />
         <Text style={[styles.tex, styles.font]}>
-          Profe: {clase.docenteNombre || clase.docenteId || 'Sin nombre'}
+          {clase.docenteNombre || clase.docenteId || 'Sin nombre'}
         </Text>
       </View>
 
       {/* Código único de la clase */}
       <Text style={[styles.tex1, styles.font]}>
-        Código: {clase.codigoClase || clase.id}
+        {clase.codigoClase || clase.id}
       </Text>
 
       {/* Actividades asignadas */}
-      <Text style={[styles.font, { marginTop: 20, fontSize: 18 }]}>Actividades asignadas:</Text>
+      <Text style={[styles.font, { marginTop: 20, fontSize: 18, left: '20%' }]}>Actividades asignadas:</Text>
       <ScrollView
         style={{
           width: Dimensions.get('window').width - 15,
@@ -69,7 +93,7 @@ export default function Clase() {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={[styles.font, { marginTop: 10 }]}>
+          <Text style={[styles.font, { marginTop: 10, left: '17%' }]}>
             No hay actividades asignadas aún.
           </Text>
         )}
@@ -101,7 +125,7 @@ const styles = StyleSheet.create({
   },
   tex: {
     left: 50,
-    fontSize: 20,
+    fontSize: 17,
     bottom: 50,
     marginBottom: 0,
   },

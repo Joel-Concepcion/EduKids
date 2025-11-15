@@ -30,7 +30,8 @@ const mensajesMotivadores = [
   '¡Tú lo lograrás!',
 ];
 
-export default function Juego1Suma({ navigation }) {
+export default function Juego1Suma({ navigation, route }) {
+  const { alumnoId } = route.params || {};
   const TOTAL_EJERCICIOS = 6;
 
   const [fontsLoaded] = useFonts({
@@ -134,37 +135,64 @@ export default function Juego1Suma({ navigation }) {
     }
   };
 
+  // Función para guardar progreso
+  const guardarProgreso = async (puntos) => {
+  try {
+    // Determinar el ID a usar
+    const idParaGuardar = alumnoId || auth?.currentUser?.uid;
+    
+    console.log('Guardando progreso para ID:', idParaGuardar);
+
+    if (!idParaGuardar) {
+      console.log('No hay ID válido para guardar progreso');
+      return;
+    }
+
+    // Referencia al documento del alumno
+    const alumnoRef = doc(db, 'alumnos', idParaGuardar);
+    const alumnoDoc = await getDoc(alumnoRef);
+    
+    if (!alumnoDoc.exists()) {
+      console.log('No se encontró el alumno con ID:', idParaGuardar);
+      return;
+    }
+
+    const alumnoData = alumnoDoc.data();
+    const progresoActual = alumnoData.progreso || {};
+
+    // Actualizar progreso manteniendo la estructura existente
+    const nuevoProgreso = {
+      ...progresoActual,
+      Matemática: {
+        ...(progresoActual.Matemática || {}),
+        juego1Suma: {
+          puntos: puntos,
+          fecha: new Date().toISOString().split('T')[0],
+          nivelCompletado: level,
+          ejerciciosCompletados: completed,
+          errores: errores
+        }
+      }
+    };
+
+    // Actualizar solo el campo progreso
+    await setDoc(alumnoRef, {
+      progreso: nuevoProgreso
+    }, { merge: true }); // ¡IMPORTANTE: merge: true para no sobreescribir otros campos
+
+    console.log('Progreso guardado exitosamente en alumno:', idParaGuardar);
+    console.log('Progreso actualizado:', nuevoProgreso);
+
+  } catch (error) {
+    console.error('Error al guardar el progreso:', error);
+  }
+};
+
   if (finished) {
     const puntos = Math.max(10 - errores, 0);
-    const usuario = auth?.currentUser;
-
-    if (usuario && usuario.uid) {
-      const progresoRef = doc(db, 'progreso', usuario.uid);
-
-      const guardarProgreso = async () => {
-        try {
-          const progresoDoc = await getDoc(progresoRef);
-          const dataActual = progresoDoc.exists() ? progresoDoc.data() : {};
-
-          const nuevoProgreso = {
-            ...dataActual,
-            Matemática: {
-              ...(dataActual.Matemática || {}),
-              juego1Suma: {
-                puntos,
-                fecha: new Date().toISOString().split('T')[0],
-              },
-            },
-          };
-
-          await setDoc(progresoRef, nuevoProgreso);
-        } catch (error) {
-          console.error('Error al guardar el progreso:', error);
-        }
-      };
-
-      guardarProgreso();
-    }
+    
+    // Guardar progreso cuando el juego termina
+    guardarProgreso(puntos);
 
     Speech.speak(`¡Felicidades! Has completado todos los ejercicios con ${puntos} puntos`, { language: 'es' });
 
@@ -183,6 +211,14 @@ export default function Juego1Suma({ navigation }) {
         >
           <Text style={styles.cardText}>Jugar de nuevo</Text>
         </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.container}>
+        <Text>Cargando...</Text>
       </View>
     );
   }
@@ -287,11 +323,12 @@ const styles = StyleSheet.create({
   },
   problem: {
     fontFamily: 'CenturyGothicBold',
+    fontSize: 18,
+    marginBottom: 20,
   },
   gif: {
     width: 150,
     height: 150,
     marginBottom: 20,
   },
-
 });
