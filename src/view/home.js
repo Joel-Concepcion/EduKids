@@ -125,7 +125,7 @@ export default function home() {
                             <Text style={styles.iconText}>Matemáticas</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.bt3}>
+                        <TouchableOpacity style={styles.bt3} onPress={() => navigation.navigate("Lista actividades literatura")}>
                             <Image source={require('../../src/assets/icon/lite.png')} style={styles.iconImage} />
                             <Text style={styles.iconText}>Literatura</Text>
                         </TouchableOpacity>

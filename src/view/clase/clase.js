@@ -13,6 +13,24 @@ import * as Font from 'expo-font';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../../model/db';
 
+// Mapa de banners por bannerKey o id de actividad (ajusta rutas require(...) si es necesario)
+const ACTIVITY_BANNERS = {
+  'juego-palabras': require('../../assets/game/literatura/formarP.png'),
+  'vocabulario-memoria': require('../../assets/game/literatura/formarP.png'),
+  'suma-basica': require('../../assets/bannerActi/Rectangle 26.png'),
+  'resta-basica': require('../../assets/bannerActi/Rectangle 27.png'),
+  default: require('../../assets/bannerActi/Rectangle 27.png'),
+};
+
+// Mapa que traduce activity.id (slug) al screen name registrado en tu navigator
+// Ajusta los valores para que coincidan exactamente con los nombres de tus Stack.Screen
+const ACTIVITY_SCREENS = {
+  'juego-palabras': 'Juego de Palabras',
+  'vocabulario-memoria': 'Juego de Palabras',
+  'suma-basica': 'Juego de Sumas',
+  'resta-basica': 'Juego de Sumas',
+  // añade más mapeos según necesites
+};
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -38,7 +56,7 @@ export default function Clase() {
       if (!clase?.docenteId) return;
 
       try {
-        const docenteRef = doc(db, 'users', clase.docenteId); // o 'docente' si usás esa colección
+        const docenteRef = doc(db, 'users', clase.docenteId);
         const docenteSnap = await getDoc(docenteRef);
 
         if (docenteSnap.exists()) {
@@ -52,9 +70,53 @@ export default function Clase() {
     cargarDocente();
   }, [clase]);
 
+  // Devuelve la imagen de banner adecuada según la actividad (objeto o string)
+  const getBannerForActivity = (actividad) => {
+    if (!actividad) return ACTIVITY_BANNERS.default;
+
+    // Legacy: si actividad es string, mapear por nombre conocido
+    if (typeof actividad === 'string') {
+      const legacyMap = {
+        'Juego de Palabras': 'juego-palabras',
+        'Vocabulario Memoria': 'vocabulario-memoria',
+        'Suma Básica': 'suma-basica',
+        'Resta Básica': 'resta-basica',
+      };
+      const key = legacyMap[actividad] || 'default';
+      return ACTIVITY_BANNERS[key] || ACTIVITY_BANNERS.default;
+    }
+
+    // Si es objeto, prioriza bannerKey, luego id
+    const key = actividad.bannerKey || actividad.id || 'default';
+    return ACTIVITY_BANNERS[key] || ACTIVITY_BANNERS.default;
+  };
+
+  // Determina la pantalla/route para navegar al tocar una actividad
+  const getNavigationTarget = (actividad) => {
+    if (!actividad) return null;
+
+    // Si es string legacy, intenta mapear por nombre o devolver el mismo string
+    if (typeof actividad === 'string') {
+      // si en tu navigator tienes "Juego de Palabras" etc., devolvemos esa cadena
+      // en caso contrario, intenta mapear por legacy -> screen (usando ACTIVITY_SCREENS keys)
+      const legacyMap = {
+        'Juego de Palabras': 'Juego de Palabras',
+        'Suma Básica': 'Juego de Sumas',
+        'Resta Básica': 'Juego de Sumas',
+      };
+      return legacyMap[actividad] || actividad;
+    }
+
+    // Si es objeto, buscar el screen por actividad.id en ACTIVITY_SCREENS
+    const key = actividad.id;
+    if (key && ACTIVITY_SCREENS[key]) return ACTIVITY_SCREENS[key];
+
+    // fallback: usar actividad.nombre si coincide con un screen registrado
+    return actividad.nombre || null;
+  };
 
   if (!fontsLoaded || !clase) return null;
-  // <Image style={styles.imM}  source={{uri: clase.profileImage || 'https://randomuser.me/api/portraits/women/44.jpg',}}/>
+
   return (
     <View style={styles.container}>
       {/* Encabezado con imagen y nombre del docente */}
@@ -71,29 +133,49 @@ export default function Clase() {
       </Text>
 
       {/* Actividades asignadas */}
-      <Text style={[styles.font, { marginTop: 20, fontSize: 18, left: '20%' }]}>Actividades asignadas:</Text>
+      <Text style={[styles.font, { marginTop: 20, fontSize: 18, left: '5%' }]}>Actividades asignadas:</Text>
       <ScrollView
         style={{
           width: Dimensions.get('window').width - 15,
           right: 12,
+          marginTop: 10,
         }}
       >
         {clase.actividades && clase.actividades.length > 0 ? (
-          clase.actividades.map((actividad, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.imaj}
-              onPress={() => navigation.navigate(actividad)}
-            >
-              <Image
-                style={styles.ima}
-                source={require('../../assets/bannerActi/Rectangle 26.png')}
-              />
-              <Text style={styles.actividadTexto}>{actividad}</Text>
-            </TouchableOpacity>
-          ))
+          clase.actividades.map((actividad, index) => {
+            const nombre = typeof actividad === 'string' ? actividad : actividad.nombre;
+            const banner = getBannerForActivity(actividad);
+            const target = getNavigationTarget(actividad);
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.imaj}
+                onPress={() => {
+                  if (!target) {
+                    console.warn('Actividad sin target de navegación:', actividad);
+                    return;
+                  }
+
+                  // navigation: pasamos actividad completa y claves para guardar progresoPorClase
+                  // Si actividad proviene de legacy (string) no tendrá id; los juegos deberán manejar fallback
+                  navigation.navigate(target, {
+                    actividad,
+                    actividadId: typeof actividad === 'string' ? null : actividad.id,
+                    claseId: clase.id,
+                  });
+                }}
+              >
+                <Image
+                  style={styles.ima}
+                  source={banner}
+                />
+                <Text style={styles.actividadTexto}>{nombre}</Text>
+              </TouchableOpacity>
+            );
+          })
         ) : (
-          <Text style={[styles.font, { marginTop: 10, left: '17%' }]}>
+          <Text style={[styles.font, { marginTop: 10, left: '5%' }]}>
             No hay actividades asignadas aún.
           </Text>
         )}

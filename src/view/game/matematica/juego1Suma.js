@@ -30,8 +30,19 @@ const mensajesMotivadores = [
   '¡Tú lo lograrás!',
 ];
 
+// Mapeo de activityId -> categoria para asegurar que el progreso se guarde bajo la categoría correcta
+const CATEGORY_MAP = {
+  'juego1-suma': 'Matemática',
+  'suma-basica': 'Matemática',
+  'resta-basica': 'Matemática',
+  'juego-palabras': 'Literatura',
+  'vocabulario-memoria': 'Literatura',
+  // añade aquí más mapeos según tus activityId reales
+};
+
 export default function Juego1Suma({ navigation, route }) {
-  const { alumnoId } = route.params || {};
+  // route.params expected: { alumnoId?, claseId?, actividadId?, actividadCategoria? }
+  const { alumnoId: alumnoParam, claseId: claseParam, actividadId: actividadParam, actividadCategoria: actividadCategoriaParam } = route?.params || {};
   const TOTAL_EJERCICIOS = 6;
 
   const [fontsLoaded] = useFonts({
@@ -75,16 +86,20 @@ export default function Juego1Suma({ navigation, route }) {
       let soundInstance;
 
       const reproducirMusicaFondo = async () => {
-        const { sound } = await Audio.Sound.createAsync(
-          require('../../../assets/sound/mario-walking-through-dream-sequence-224596.mp3'),
-          {
-            shouldPlay: true,
-            isLooping: true,
-            volume: 0.2,
-          }
-        );
-        soundInstance = sound;
-        await sound.playAsync();
+        try {
+          const { sound } = await Audio.Sound.createAsync(
+            require('../../../assets/sound/mario-walking-through-dream-sequence-224596.mp3'),
+            {
+              shouldPlay: true,
+              isLooping: true,
+              volume: 0.2,
+            }
+          );
+          soundInstance = sound;
+          await sound.playAsync();
+        } catch (e) {
+          console.log('Error reproducir musica fondo:', e);
+        }
       };
 
       reproducirMusicaFondo();
@@ -111,11 +126,17 @@ export default function Juego1Suma({ navigation, route }) {
 
   const handleAnswer = async (value) => {
     const reproducirSonidoSeleccion = async () => {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../../../assets/sound/tapp.mp3'),
-        { shouldPlay: true }
-      );
-      await sound.playAsync();
+      try {
+        const { sound } = await Audio.Sound.createAsync(require('../../../assets/sound/tapp.mp3'), { shouldPlay: true });
+        await sound.playAsync();
+        // unload to avoid resource leak
+        setTimeout(() => {
+          sound.stopAsync().catch(() => {});
+          sound.unloadAsync().catch(() => {});
+        }, 800);
+      } catch (e) {
+        console.log('Error reproducir tap:', e);
+      }
     };
 
     await reproducirSonidoSeleccion();
@@ -127,7 +148,7 @@ export default function Juego1Suma({ navigation, route }) {
       setTimeout(() => {
         setMostrarGif(false);
         setCompleted((prev) => prev + 1);
-      }, 2000);
+      }, 1200);
     } else {
       setErrores((prev) => prev + 1);
       const motivador = mensajesMotivadores[Math.floor(Math.random() * mensajesMotivadores.length)];
@@ -135,67 +156,120 @@ export default function Juego1Suma({ navigation, route }) {
     }
   };
 
-  // Función para guardar progreso
-  const guardarProgreso = async (puntos) => {
-  try {
-    // Determinar el ID a usar
-    const idParaGuardar = alumnoId || auth?.currentUser?.uid;
-    
-    console.log('Guardando progreso para ID:', idParaGuardar);
+  // Determina la categoría de la actividad usando params o el mapa
+  const determineCategory = (actividadId) => {
+    // prioridad: explicit activityCategory param, luego mapping por id, luego fallback a 'Matemática'
+    if (actividadCategoriaParam) return actividadCategoriaParam;
+    if (actividadId && CATEGORY_MAP[actividadId]) return CATEGORY_MAP[actividadId];
+    // intentar inferir por palabra clave
+    if (actividadId && /suma|resta|mate|numero|math/i.test(actividadId)) return 'Matemática';
+    if (actividadId && /palabra|vocab|liter|letra/i.test(actividadId)) return 'Literatura';
+    return 'Matemática';
+  };
 
-    if (!idParaGuardar) {
-      console.log('No hay ID válido para guardar progreso');
-      return;
-    }
-
-    // Referencia al documento del alumno
-    const alumnoRef = doc(db, 'alumnos', idParaGuardar);
-    const alumnoDoc = await getDoc(alumnoRef);
-    
-    if (!alumnoDoc.exists()) {
-      console.log('No se encontró el alumno con ID:', idParaGuardar);
-      return;
-    }
-
-    const alumnoData = alumnoDoc.data();
-    const progresoActual = alumnoData.progreso || {};
-
-    // Actualizar progreso manteniendo la estructura existente
-    const nuevoProgreso = {
-      ...progresoActual,
-      Matemática: {
-        ...(progresoActual.Matemática || {}),
-        juego1Suma: {
-          puntos: puntos,
-          fecha: new Date().toISOString().split('T')[0],
-          nivelCompletado: level,
-          ejerciciosCompletados: completed,
-          errores: errores
-        }
+  // Guardar progreso por clase y actividad (estructura progresoPorClase) y marcar la categoría correcta
+  const guardarProgresoPorClase = async (puntos) => {
+    try {
+      const idParaGuardar = alumnoParam || auth?.currentUser?.uid;
+      if (!idParaGuardar) {
+        console.log('No hay alumnoId disponible para guardar progreso');
+        return;
       }
-    };
 
-    // Actualizar solo el campo progreso
-    await setDoc(alumnoRef, {
-      progreso: nuevoProgreso
-    }, { merge: true }); // ¡IMPORTANTE: merge: true para no sobreescribir otros campos
+      const claseId = claseParam || 'sin-clase';
+      const actividadId = actividadParam || 'juego1-suma';
 
-    console.log('Progreso guardado exitosamente en alumno:', idParaGuardar);
-    console.log('Progreso actualizado:', nuevoProgreso);
+      const categoria = determineCategory(actividadId);
 
-  } catch (error) {
-    console.error('Error al guardar el progreso:', error);
-  }
-};
+      const alumnoRef = doc(db, 'alumnos', idParaGuardar);
+      const alumnoSnap = await getDoc(alumnoRef);
+      const alumnoData = alumnoSnap.exists() ? alumnoSnap.data() : {};
+
+      const progresoPorClase = alumnoData.progresoPorClase || {};
+      const progresoClasePrev = progresoPorClase[claseId] || { actividades: {}, resumen: {} };
+      const actividadPrev = progresoClasePrev.actividades?.[actividadId];
+
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const nuevoIntento = { puntos, errores, fecha: fechaHoy, nivel: level, ejerciciosCompletados: completed };
+
+      const intentosPrev = actividadPrev?.intentos || [];
+      const actividadNueva = {
+        ...(actividadPrev || {}),
+        puntos,
+        errores,
+        categoria, // guardamos la categoría explícitamente en la actividad
+        nombre: actividadPrev?.nombre || actividadId, // si hay nombre previo lo respetamos
+        ultimaActualizacion: fechaHoy,
+        intentos: [...intentosPrev, nuevoIntento],
+      };
+
+      const actividadesActualizadas = {
+        ...(progresoClasePrev.actividades || {}),
+        [actividadId]: actividadNueva,
+      };
+
+      // recalcular resumen simple por clase: suma de últimos intentos
+      const resumen = Object.values(actividadesActualizadas).reduce(
+        (acc, act) => {
+          const last = act.intentos?.[act.intentos.length - 1] || {};
+          return {
+            puntosTotales: acc.puntosTotales + (last.puntos || 0),
+            erroresTotales: acc.erroresTotales + (last.errores || 0),
+          };
+        },
+        { puntosTotales: 0, erroresTotales: 0 }
+      );
+      resumen.ultimaActualizacion = new Date().toISOString();
+
+      const progresoClaseNuevo = { actividades: actividadesActualizadas, resumen };
+      const progresoPorClaseNuevo = { ...progresoPorClase, [claseId]: progresoClaseNuevo };
+
+      // Guardar progresoPorClase (no sobrescribe otros campos thanks to merge)
+      await setDoc(alumnoRef, { progresoPorClase: progresoPorClaseNuevo }, { merge: true });
+
+      // Opcional: mantener compatibilidad legacy actualizando también alumno.progreso[categoria][actividadId]
+      // Esto facilita pantallas antiguas que esperan progreso global por categoría
+      try {
+        const progresoGlobalPrev = alumnoData.progreso || {};
+        const catPrev = progresoGlobalPrev[categoria] || {};
+        const actividadLegacy = {
+          puntos,
+          errores,
+          fecha: fechaHoy,
+          nivel,
+          ejerciciosCompletados: completed,
+        };
+        const progresoGlobalNuevo = {
+          ...progresoGlobalPrev,
+          [categoria]: {
+            ...catPrev,
+            [actividadId]: actividadLegacy,
+          }
+        };
+        await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
+      } catch (eLegacy) {
+        // no detener el flujo si falla la escritura legacy
+        console.log('No se pudo actualizar esquema legacy (progreso):', eLegacy);
+      }
+
+      console.log('Progreso guardado:', { alumno: idParaGuardar, claseId, actividadId, categoria, puntos, errores });
+    } catch (e) {
+      console.error('Error al guardar progreso por clase:', e);
+    }
+  };
+
+  // Guardar una sola vez cuando finished pase a true
+  useEffect(() => {
+    if (finished) {
+      const puntos = Math.max(10 - errores, 0);
+      guardarProgresoPorClase(puntos);
+      Speech.speak(`¡Felicidades! Has completado todos los ejercicios con ${puntos} puntos`, { language: 'es' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished]);
 
   if (finished) {
     const puntos = Math.max(10 - errores, 0);
-    
-    // Guardar progreso cuando el juego termina
-    guardarProgreso(puntos);
-
-    Speech.speak(`¡Felicidades! Has completado todos los ejercicios con ${puntos} puntos`, { language: 'es' });
-
     return (
       <View style={styles.container}>
         <Text style={styles.title}>¡Juego completado!</Text>

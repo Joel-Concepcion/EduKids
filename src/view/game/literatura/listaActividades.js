@@ -26,11 +26,12 @@ import appFirebase from '../../../model/db';
 const db = getFirestore(appFirebase);
 const auth = getAuth();
 
-// Mapa de metadatos para actividades de Matemática (usa para convertir string -> objeto)
-const ACTIVIDAD_META_MATE = {
-  'Juego de Sumas': { id: 'suma-basica', nombre: 'Juego de Sumas', categoria: 'Matemática', bannerKey: 'suma-basica' },
-  'Juego de Restas': { id: 'resta-basica', nombre: 'Juego de Restas', categoria: 'Matemática', bannerKey: 'resta-basica' },
-  'Conteo': { id: 'conteo', nombre: 'Conteo', categoria: 'Matemática', bannerKey: 'conteo' },
+// Mapa de metadatos para actividades (usa este mapping para convertir nombres legacy a objetos)
+const ACTIVIDAD_META = {
+  'Juego de Palabras': { id: 'juego-palabras', nombre: 'Juego de Palabras', categoria: 'Literatura', bannerKey: 'juego-palabras' },
+  'Vocabulario Memoria': { id: 'vocabulario-memoria', nombre: 'Vocabulario Memoria', categoria: 'Literatura', bannerKey: 'vocabulario-memoria' },
+  'Suma Básica': { id: 'suma-basica', nombre: 'Suma Básica', categoria: 'Matemática', bannerKey: 'suma-basica' },
+  'Resta Básica': { id: 'resta-basica', nombre: 'Resta Básica', categoria: 'Matemática', bannerKey: 'resta-basica' },
   // Añade aquí más mappings según tus actividades reales
 };
 
@@ -39,8 +40,8 @@ export default function ListaActividades() {
   const [mostrarBotones, setMostrarBotones] = useState(false);
   const [mostrarClases, setMostrarClases] = useState(false);
 
-  // Mantengo actividadSeleccionada como string (no romper UI existente)
-  const [actividadSeleccionada, setActividadSeleccionada] = useState('Juego de Sumas');
+  // Mantengo actividadSeleccionada como string para no romper tu UI existente
+  const [actividadSeleccionada, setActividadSeleccionada] = useState('Juego de Palabras');
   const [clases, setClases] = useState([]);
 
   useEffect(() => {
@@ -80,21 +81,21 @@ export default function ListaActividades() {
     setMostrarClases(true);
   };
 
-  // Reemplaza la lógica original: convierte string en objeto con metadatos antes de guardar
+  // Reemplaza la lógica anterior: convierte el string seleccionado en un objeto antes de guardar
   const handleSeleccionClase = async (claseId) => {
     try {
       const clase = clases.find(c => c.id === claseId);
       if (!clase) return;
 
       // Convertir actividadSeleccionada (string) a objeto con metadatos si existe mapping
-      const actividadObj = ACTIVIDAD_META_MATE[actividadSeleccionada] || {
+      const actividadObj = ACTIVIDAD_META[actividadSeleccionada] || {
         id: actividadSeleccionada.toLowerCase().replace(/\s+/g, '-'),
         nombre: actividadSeleccionada,
-        categoria: 'Matemática',
+        categoria: 'General',
         bannerKey: null,
       };
 
-      // Evitar duplicados: comparar por id (si clase ya guarda objetos) o por string legacy
+      // Evitar duplicados: comparar por id (si actividad en clase ya es objeto) o por string legacy
       const yaEsta = (clase.actividades || []).some(act => {
         if (typeof act === 'string') return act === actividadSeleccionada;
         return act.id === actividadObj.id;
@@ -120,7 +121,7 @@ export default function ListaActividades() {
       Alert.alert('Actividad asignada', `Se agregó "${actividadObj.nombre}" a la clase ${clase.nombreClase || clase.nombre}`);
       setMostrarClases(false);
 
-      // Navegar a Clase pasando la clase actualizada
+      // Navegar a la pantalla Clase con datos actualizados
       navigation.navigate('Clase', { clase: { ...clase, actividades: nuevasActividades } });
     } catch (error) {
       console.error('Error al asignar actividad:', error);
@@ -131,7 +132,7 @@ export default function ListaActividades() {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.tou} onPress={handleImagenPress}>
-        <Image source={require('../../../assets/bannerActi/Rectangle 26.png')} />
+        <Image style={styles.Image} source={require('../../../assets/game/literatura/formarP.png')} />
       </TouchableOpacity>
 
       {mostrarBotones && (
@@ -192,7 +193,8 @@ const styles = StyleSheet.create({
   botones: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: 10,
+    bottom: '25%',
   },
   boton: {
     padding: 10,
@@ -219,5 +221,10 @@ const styles = StyleSheet.create({
   },
   closeButtonText:{
     fontSize: 25,
+  },
+  Image:{
+    width: '100%',
+    height:'50%',
+    borderRadius: 30,
   }
 });

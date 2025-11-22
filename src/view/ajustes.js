@@ -14,7 +14,7 @@ import appFirebase from "../model/db";
 const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
 
-// 🔤 Carga de fuentes
+//Carga de fuentes
 const fetchFonts = () => Font.loadAsync({
     'CenturyGothic': require('../assets/font/3394-font.ttf'),
     'CenturyGothic-Bold': require('../assets/font/4410-font.ttf'),
