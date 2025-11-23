@@ -16,9 +16,9 @@ import { db } from '../../model/db';
 // Mapa de banners por bannerKey o id de actividad (ajusta rutas require(...) si es necesario)
 const ACTIVITY_BANNERS = {
   'juego-palabras': require('../../assets/game/literatura/formarP.png'),
-  'vocabulario-memoria': require('../../assets/game/literatura/formarP.png'),
+  'vocabulario-memoria': require('../../assets/game/literatura/bannerABC.png'),
   'suma-basica': require('../../assets/bannerActi/Rectangle 26.png'),
-  'resta-basica': require('../../assets/bannerActi/Rectangle 27.png'),
+  'figuras-formas': require('../../assets/game/figurasFormas/forma.png'),
   default: require('../../assets/bannerActi/Rectangle 27.png'),
 };
 
@@ -26,9 +26,9 @@ const ACTIVITY_BANNERS = {
 // Ajusta los valores para que coincidan exactamente con los nombres de tus Stack.Screen
 const ACTIVITY_SCREENS = {
   'juego-palabras': 'Juego de Palabras',
-  'vocabulario-memoria': 'Juego de Palabras',
+  'vocabulario-memoria': 'Juego de abecedario',
   'suma-basica': 'Juego de Sumas',
-  'resta-basica': 'Juego de Sumas',
+  'figuras-formas': 'Formas',
   // añade más mapeos según necesites
 };
 
@@ -78,9 +78,9 @@ export default function Clase() {
     if (typeof actividad === 'string') {
       const legacyMap = {
         'Juego de Palabras': 'juego-palabras',
-        'Vocabulario Memoria': 'vocabulario-memoria',
+        'Juego de abecedario': 'vocabulario-memoria',
         'Suma Básica': 'suma-basica',
-        'Resta Básica': 'resta-basica',
+        'Formas': 'figuras-formas',
       };
       const key = legacyMap[actividad] || 'default';
       return ACTIVITY_BANNERS[key] || ACTIVITY_BANNERS.default;
@@ -102,7 +102,8 @@ export default function Clase() {
       const legacyMap = {
         'Juego de Palabras': 'Juego de Palabras',
         'Suma Básica': 'Juego de Sumas',
-        'Resta Básica': 'Juego de Sumas',
+        'Formas': 'Formas',
+        'Juego de abecedario': 'Juego de abecedario',
       };
       return legacyMap[actividad] || actividad;
     }

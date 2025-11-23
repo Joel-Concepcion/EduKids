@@ -28,13 +28,13 @@ const auth = getAuth();
 
 // Mapa de metadatos para actividades
 const ACTIVIDAD_META = {
-  'Juego de Palabras': { 
-    id: 'juego-palabras', 
-    nombre: 'Juego de Palabras', 
-    categoria: 'Literatura', 
-    bannerKey: 'juego-palabras',
-    imagen: require('../../../assets/game/literatura/formarP.png'),
-    screen: 'Juego de Palabras'
+  'Formas': { 
+    id: 'figuras-formas', 
+    nombre: 'Formas', 
+    categoria: 'Figuras', 
+    bannerKey: 'figuras-formas',
+    imagen: require('../../../assets/game/figurasFormas/forma.png'),
+    screen: 'Formas'
   },
   'Juego de abecedario': { 
     id: 'vocabulario-memoria', 
@@ -54,7 +54,7 @@ export default function ListaActividades() {
 
   // Lista de actividades disponibles
   const actividades = [
-    ACTIVIDAD_META['Juego de Palabras'],
+    ACTIVIDAD_META['Formas'],
     ACTIVIDAD_META['Juego de abecedario']
   ];
 
@@ -210,7 +210,7 @@ export default function ListaActividades() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Lista actividades literatura</Text>
+      <Text style={styles.titulo}>Lista actividades figuras y formas</Text>
       
       {/* Lista de actividades */}
       <FlatList

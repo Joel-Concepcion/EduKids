@@ -130,7 +130,7 @@ export default function home() {
                             <Text style={styles.iconText}>Literatura</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.bt4}>
+                        <TouchableOpacity style={styles.bt4} onPress={() => navigation.navigate("Lista actividades de figuras y formas")}>
                             <Image source={require('../../src/assets/icon/figu.png')} style={styles.iconImage} />
                             <Text style={styles.iconText}>Figuras</Text>
                         </TouchableOpacity>

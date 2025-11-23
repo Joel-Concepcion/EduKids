@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, Modal } from 'react-native';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import { useFocusEffect } from '@react-navigation/native';
@@ -30,18 +30,15 @@ const mensajesMotivadores = [
   '¡Tú lo lograrás!',
 ];
 
-// Mapeo de activityId -> categoria para asegurar que el progreso se guarde bajo la categoría correcta
 const CATEGORY_MAP = {
   'juego1-suma': 'Matemática',
   'suma-basica': 'Matemática',
   'resta-basica': 'Matemática',
   'juego-palabras': 'Literatura',
   'vocabulario-memoria': 'Literatura',
-  // añade aquí más mapeos según tus activityId reales
 };
 
 export default function Juego1Suma({ navigation, route }) {
-  // route.params expected: { alumnoId?, claseId?, actividadId?, actividadCategoria? }
   const { alumnoId: alumnoParam, claseId: claseParam, actividadId: actividadParam, actividadCategoria: actividadCategoriaParam } = route?.params || {};
   const TOTAL_EJERCICIOS = 6;
 
@@ -76,6 +73,9 @@ export default function Juego1Suma({ navigation, route }) {
   const [confeti, setConfeti] = useState('');
   const [errores, setErrores] = useState(0);
   const [mostrarGif, setMostrarGif] = useState(false);
+  const [resultModalVisible, setResultModalVisible] = useState(false);
+  const [resultMessage, setResultMessage] = useState('');
+  const [resultRecommendation, setResultRecommendation] = useState('');
 
   useEffect(() => {
     setMaxNumber(level === 1 ? 5 : level === 2 ? 10 : 10);
@@ -106,8 +106,8 @@ export default function Juego1Suma({ navigation, route }) {
 
       return () => {
         if (soundInstance) {
-          soundInstance.stopAsync();
-          soundInstance.unloadAsync();
+          soundInstance.stopAsync().catch(() => {});
+          soundInstance.unloadAsync().catch(() => {});
         }
       };
     }, [])
@@ -129,7 +129,6 @@ export default function Juego1Suma({ navigation, route }) {
       try {
         const { sound } = await Audio.Sound.createAsync(require('../../../assets/sound/tapp.mp3'), { shouldPlay: true });
         await sound.playAsync();
-        // unload to avoid resource leak
         setTimeout(() => {
           sound.stopAsync().catch(() => {});
           sound.unloadAsync().catch(() => {});
@@ -156,18 +155,14 @@ export default function Juego1Suma({ navigation, route }) {
     }
   };
 
-  // Determina la categoría de la actividad usando params o el mapa
   const determineCategory = (actividadId) => {
-    // prioridad: explicit activityCategory param, luego mapping por id, luego fallback a 'Matemática'
     if (actividadCategoriaParam) return actividadCategoriaParam;
     if (actividadId && CATEGORY_MAP[actividadId]) return CATEGORY_MAP[actividadId];
-    // intentar inferir por palabra clave
     if (actividadId && /suma|resta|mate|numero|math/i.test(actividadId)) return 'Matemática';
     if (actividadId && /palabra|vocab|liter|letra/i.test(actividadId)) return 'Literatura';
     return 'Matemática';
   };
 
-  // Guardar progreso por clase y actividad (estructura progresoPorClase) y marcar la categoría correcta
   const guardarProgresoPorClase = async (puntos) => {
     try {
       const idParaGuardar = alumnoParam || auth?.currentUser?.uid;
@@ -178,7 +173,6 @@ export default function Juego1Suma({ navigation, route }) {
 
       const claseId = claseParam || 'sin-clase';
       const actividadId = actividadParam || 'juego1-suma';
-
       const categoria = determineCategory(actividadId);
 
       const alumnoRef = doc(db, 'alumnos', idParaGuardar);
@@ -197,8 +191,8 @@ export default function Juego1Suma({ navigation, route }) {
         ...(actividadPrev || {}),
         puntos,
         errores,
-        categoria, // guardamos la categoría explícitamente en la actividad
-        nombre: actividadPrev?.nombre || actividadId, // si hay nombre previo lo respetamos
+        categoria,
+        nombre: actividadPrev?.nombre || actividadId,
         ultimaActualizacion: fechaHoy,
         intentos: [...intentosPrev, nuevoIntento],
       };
@@ -208,7 +202,6 @@ export default function Juego1Suma({ navigation, route }) {
         [actividadId]: actividadNueva,
       };
 
-      // recalcular resumen simple por clase: suma de últimos intentos
       const resumen = Object.values(actividadesActualizadas).reduce(
         (acc, act) => {
           const last = act.intentos?.[act.intentos.length - 1] || {};
@@ -224,11 +217,8 @@ export default function Juego1Suma({ navigation, route }) {
       const progresoClaseNuevo = { actividades: actividadesActualizadas, resumen };
       const progresoPorClaseNuevo = { ...progresoPorClase, [claseId]: progresoClaseNuevo };
 
-      // Guardar progresoPorClase (no sobrescribe otros campos thanks to merge)
       await setDoc(alumnoRef, { progresoPorClase: progresoPorClaseNuevo }, { merge: true });
 
-      // Opcional: mantener compatibilidad legacy actualizando también alumno.progreso[categoria][actividadId]
-      // Esto facilita pantallas antiguas que esperan progreso global por categoría
       try {
         const progresoGlobalPrev = alumnoData.progreso || {};
         const catPrev = progresoGlobalPrev[categoria] || {};
@@ -248,7 +238,6 @@ export default function Juego1Suma({ navigation, route }) {
         };
         await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
       } catch (eLegacy) {
-        // no detener el flujo si falla la escritura legacy
         console.log('No se pudo actualizar esquema legacy (progreso):', eLegacy);
       }
 
@@ -258,12 +247,39 @@ export default function Juego1Suma({ navigation, route }) {
     }
   };
 
-  // Guardar una sola vez cuando finished pase a true
+  const evaluateResults = () => {
+    const puntos = Math.max(10 - errores, 0);
+
+    // Mensajes personalizados según número de errores
+    if (errores === 0) {
+      const msg = `¡Excelente! Completaste la actividad con ${puntos} puntos y sin errores. Muy buen trabajo.`;
+      setResultMessage(msg);
+      setResultRecommendation('');
+      Speech.speak(msg, { language: 'es' });
+    } else if (errores === 1) {
+      const msg = `Buen trabajo. Tuviste 1 error pero vas por muy buen camino.`;
+      const rec = `Sugerencia: repasa unas sumas rápidas de 5 preguntas para consolidar lo aprendido. Sigue así y lo lograrás.`;
+      setResultMessage(`${msg} Obtuviste ${puntos} puntos.`);
+      setResultRecommendation(rec);
+      Speech.speak(`${msg} ${rec}`, { language: 'es' });
+    } else {
+      // errores >= 2
+      const msg = `Cometiste ${errores} errores en esta actividad, pero estás en el camino correcto.`;
+      // Mensaje más empático y específico: si quieres, podríamos indicar qué tipo de error (aquí general)
+      const rec = `Recomendación: practica sumas con números hasta ${maxNumber}. Haz sesiones cortas de 5 ejercicios y revisa paso a paso cada resultado. Verás progreso pronto.`;
+      setResultMessage(`${msg} Obtuviste ${puntos} puntos.`);
+      setResultRecommendation(rec);
+      Speech.speak(`${msg} ${rec}`, { language: 'es' });
+    }
+
+    // Mostrar modal y guardar progreso final
+    setResultModalVisible(true);
+    guardarProgresoPorClase(puntos).catch(() => {});
+  };
+
   useEffect(() => {
     if (finished) {
-      const puntos = Math.max(10 - errores, 0);
-      guardarProgresoPorClase(puntos);
-      Speech.speak(`¡Felicidades! Has completado todos los ejercicios con ${puntos} puntos`, { language: 'es' });
+      evaluateResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
@@ -274,6 +290,7 @@ export default function Juego1Suma({ navigation, route }) {
       <View style={styles.container}>
         <Text style={styles.title}>¡Juego completado!</Text>
         <Text style={styles.problem}>Obtuviste {puntos} puntos 🎉</Text>
+
         <TouchableOpacity
           style={styles.card}
           onPress={() => {
@@ -281,10 +298,23 @@ export default function Juego1Suma({ navigation, route }) {
             setErrores(0);
             setFinished(false);
             setConfeti('');
+            setResultModalVisible(false);
+            setResultMessage('');
+            setResultRecommendation('');
           }}
         >
           <Text style={styles.cardText}>Jugar de nuevo</Text>
         </TouchableOpacity>
+
+        <Modal visible={resultModalVisible} transparent animationType="fade">
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setResultModalVisible(false)}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>{resultMessage}</Text>
+              {resultRecommendation ? <Text style={styles.modalRec}>{resultRecommendation}</Text> : null}
+              <Text style={styles.modalHint}>Toca cualquier parte de la pantalla para cerrar</Text>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     );
   }
@@ -318,6 +348,16 @@ export default function Juego1Suma({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      <Modal visible={resultModalVisible} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setResultModalVisible(false)}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>{resultMessage}</Text>
+            {resultRecommendation ? <Text style={styles.modalRec}>{resultRecommendation}</Text> : null}
+            <Text style={styles.modalHint}>Toca cualquier parte de la pantalla para cerrar</Text>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -404,5 +444,38 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     marginBottom: 20,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: 'CenturyGothicBold',
+  },
+  modalRec: {
+    fontSize: 14,
+    color: '#444',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: 'CenturyGothic',
+  },
+  modalHint: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 6,
+    fontFamily: 'CenturyGothic',
   },
 });

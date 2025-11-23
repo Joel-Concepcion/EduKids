@@ -136,6 +136,43 @@ export default function VistaAlumnos() {
     return actividades;
   };
 
+  // Agrupa las actividades por categoría y suma puntos y maxPoints
+  const aggregateByCategory = (activitiesList) => {
+    const map = {};
+    activitiesList.forEach(act => {
+      const cat = act.categoria || 'General';
+      if (!map[cat]) {
+        map[cat] = {
+          categoria: cat,
+          puntosTotales: 0,
+          maxPointsTotales: 0,
+          ultimaActualizacion: act.ultimaActualizacion || null,
+        };
+      }
+      map[cat].puntosTotales += Number(act.puntos || 0);
+      map[cat].maxPointsTotales += Number(act.maxPoints || DEFAULT_MAX_POINTS_PER_ACTIVITY);
+      // mantener la fecha más reciente
+      if (act.ultimaActualizacion) {
+        const prev = map[cat].ultimaActualizacion;
+        if (!prev || new Date(act.ultimaActualizacion) > new Date(prev)) {
+          map[cat].ultimaActualizacion = act.ultimaActualizacion;
+        }
+      }
+    });
+    // convertir a arreglo
+    return Object.values(map).map(c => {
+      const ratio = c.maxPointsTotales > 0 ? Math.max(0, Math.min(1, c.puntosTotales / c.maxPointsTotales)) : 0;
+      const percent = Math.round(ratio * 100);
+      return {
+        categoria: c.categoria,
+        puntosTotales: c.puntosTotales,
+        maxPointsTotales: c.maxPointsTotales,
+        percent,
+        ultimaActualizacion: c.ultimaActualizacion,
+      };
+    });
+  };
+
   const cargarProgresoAlumno = async (alumno) => {
     if (!alumno || (!alumno.uid && !alumno.id)) {
       console.log('Alumno o ID/UID no válido:', alumno);
@@ -165,7 +202,9 @@ export default function VistaAlumnos() {
         return a.categoria.localeCompare(b.categoria);
       });
 
-      setDatosActividades({ lista: listaActividades });
+      const categoriasAgrupadas = aggregateByCategory(listaActividades);
+
+      setDatosActividades({ lista: listaActividades, categoriasAgrupadas });
     } catch (error) {
       console.error('Error al cargar progreso del alumno:', error);
       setDatosActividades(null);
@@ -251,26 +290,22 @@ export default function VistaAlumnos() {
             <View style={styles.cargandoContainer}>
               <Text style={[styles.font, styles.cargandoText]}>Cargando progreso...</Text>
             </View>
-          ) : datosActividades && datosActividades.lista && datosActividades.lista.length > 0 ? (
+          ) : datosActividades && datosActividades.categoriasAgrupadas && datosActividades.categoriasAgrupadas.length > 0 ? (
             <ScrollView style={{ maxHeight: 320 }}>
-              {datosActividades.lista.map((act) => {
-                const maxPoints = act.maxPoints || DEFAULT_MAX_POINTS_PER_ACTIVITY;
-                const ratio = Math.max(0, Math.min(1, (act.puntos || 0) / maxPoints));
-                const percent = Math.round(ratio * 100);
+              {datosActividades.categoriasAgrupadas.map((cat) => {
+                const percent = cat.percent;
                 return (
-                  <View key={act.id} style={styles.activityRow}>
+                  <View key={cat.categoria} style={styles.activityRow}>
                     <View style={{ flex: 1 }}>
-                      {/* Ahora el título muestra la CATEGORÍA */}
-                      <Text style={styles.font1}>{act.categoria}</Text>
-                      {/* Subtítulo: nombre del juego */}
-                      <Text style={[styles.font, { fontSize: 12, color: '#666' }]}>{act.nombre} • {act.ultimaActualizacion || '—'}</Text>
+                      <Text style={styles.font1}>{cat.categoria}</Text>
+                      <Text style={[styles.font, { fontSize: 12, color: '#666' }]}>{cat.ultimaActualizacion || '—'}</Text>
 
                       <View style={styles.progressBarBackground}>
                         <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
                       </View>
 
                       <View style={styles.progressMeta}>
-                        <Text style={[styles.font, { fontSize: 12, color: '#333' }]}>{act.puntos} / {maxPoints} pts</Text>
+                        <Text style={[styles.font, { fontSize: 12, color: '#333' }]}>{cat.puntosTotales} / {cat.maxPointsTotales} pts</Text>
                         <Text style={[styles.font, { fontSize: 12, color: '#34B0A6' }]}>{percent}%</Text>
                       </View>
                     </View>
@@ -314,7 +349,6 @@ const styles = StyleSheet.create({
   },
   titulo: {
     fontSize: 18,
-    //fontWeight: 'bold',
     marginBottom: 15,
     textAlign: 'center'
   },
@@ -417,7 +451,6 @@ const styles = StyleSheet.create({
   },
   chartTitle: {
     fontSize: 16,
-    //fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center', flex: 1
   },

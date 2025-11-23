@@ -25,7 +25,9 @@ import JuegoFormas from "./src/view/game/formas/juegoFormas1";
 import inicioAlumno from "./src/view/vistaAlumno/inicioAlumno";
 import ListaActividades from "./src/view/game/matematica/listaActividades";
 import ListaActividadesL from "./src/view/game/literatura/listaActividades";
+import ListaActividadesF from "./src/view/game/formas/listaActividades";
 import PerfilAlumno from "./src/view/registroAlumno/perfilAlumno";
+import JuegoAbecedario from "./src/view/game/literatura/JuegoAbecedario";
 
 import ClaseNavegacion from "./ClaseNavegacion";
 
@@ -116,7 +118,10 @@ function StackMenu() {
             <Stack.Screen name="Formas" component={JuegoFormas} options={{ title: 'Juego Montessori de formas' }} />
             <Stack.Screen name="Lista actividades" component={ListaActividades}/>
             <Stack.Screen name="Lista actividades literatura" component={ListaActividadesL}/>
+            <Stack.Screen name="Lista actividades de figuras y formas" component={ListaActividadesF}/>
             <Stack.Screen name="Perfil Alumno" component={PerfilAlumno}/>
+             <Stack.Screen name="Juego de abecedario" component={JuegoAbecedario} options={{ title: 'Juego Montessori de abecedario' }} />
+
 
             <Stack.Screen name="Lista de alumnos" component={listaAlumno}/>
         </Stack.Navigator>
