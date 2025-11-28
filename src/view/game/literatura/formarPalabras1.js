@@ -171,7 +171,7 @@ export default function JuegoPalabras({ navigation, route }) {
     return 'Literatura';
   };
 
-  // Save under progresoPorClase and also update legacy progreso[categoria] for compatibility
+  // Guardar SOLO en progresoPorClase (se eliminó la escritura al esquema legacy)
   const guardarProgreso = async () => {
     try {
       const idParaGuardar = alumnoParam || auth?.currentUser?.uid;
@@ -223,33 +223,12 @@ export default function JuegoPalabras({ navigation, route }) {
       const progresoClaseNuevo = { actividades: actividadesActualizadas, resumen };
       const progresoPorClaseNuevo = { ...progresoPorClase, [claseId]: progresoClaseNuevo };
 
+      // Guardar SOLO en progresoPorClase (merge para no borrar otros campos)
       await setDoc(alumnoRef, { progresoPorClase: progresoPorClaseNuevo }, { merge: true });
 
-      // Also update legacy progreso[categoria][actividadId] to keep older views working
-      try {
-        const progresoGlobalPrev = alumnoData.progreso || {};
-        const catPrev = progresoGlobalPrev[categoria] || {};
-        const actividadLegacy = {
-          puntos,
-          errores,
-          fecha: fechaHoy,
-          palabrasCompletadas: palabrasNivel1.length,
-        };
-        const progresoGlobalNuevo = {
-          ...progresoGlobalPrev,
-          [categoria]: {
-            ...catPrev,
-            [actividadId]: actividadLegacy,
-          }
-        };
-        await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
-      } catch (eLegacy) {
-        console.log('No se pudo actualizar esquema legacy (progreso):', eLegacy);
-      }
-
-      console.log('Progreso guardado exitosamente en alumno:', idParaGuardar, 'clase:', claseId, 'actividad:', actividadId, 'categoria:', categoria);
+      console.log('Progreso guardado en progresoPorClase:', { alumno: idParaGuardar, claseId, actividadId, puntos, errores });
     } catch (error) {
-      console.error('Error al guardar el progreso:', error);
+      console.error('Error al guardar el progreso en progresoPorClase:', error);
     }
   };
 

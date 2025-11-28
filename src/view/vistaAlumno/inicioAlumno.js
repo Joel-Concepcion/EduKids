@@ -42,6 +42,17 @@ const avatarMap = {
     'Ellipse 8.png': require('../../assets/avatar/Ellipse 8.png'),
 };
 
+// Mapa de banners: añade aquí todos los banners que uses en Firestore
+const bannerMap = {
+  'Rectangle18.png': require('../../assets/bannerClase/Rectangle 18.png'),
+  'Rectangle19.png': require('../../assets/bannerClase/Rectangle 19.png'),
+  'Rectangle20.png': require('../../assets/bannerClase/Rectangle 20.png'),
+  'Rectangle21.png': require('../../assets/bannerClase/Rectangle 21.png'),
+  'Rectangle22.png': require('../../assets/bannerClase/Rectangle 22.png'),
+  // si en la BD guardas "Rectangle20" u otro key, añade la clave exacta aquí
+};
+
+const DEFAULT_BANNER = require('../../assets/bannerClase/Rectangle 18.png');
 
 export default function inicioAlumno() {
     const navigation = useNavigation();
@@ -51,7 +62,6 @@ export default function inicioAlumno() {
     const [clasesAlumno, setClasesAlumno] = useState([]);
     const [nombreAlumno, setNombreAlumno] = useState('');
     const [avatarAlumno, setAvatarAlumno] = useState('Ellipse 3.png');
-
 
     // Cargar nombre y avatar del alumno por UID
     useEffect(() => {
@@ -81,17 +91,15 @@ export default function inicioAlumno() {
 
         cargarNombreYAvatar();
 
-        // Ejecutar cada vez que se vuelve a enfocar la pantalla
         const unsubscribe = navigation.addListener('focus', cargarNombreYAvatar);
         return unsubscribe;
-    }, []);
+    }, [navigation]);
 
-    //Cargar clases del alumno
+    // Cargar clases del alumno (ahora trae banner y nombre)
     useEffect(() => {
         const cargarClasesAlumno = async () => {
             try {
                 const usuario = auth?.currentUser;
-                const unsubscribe = navigation.addListener('focus', cargarClasesAlumno);
                 if (!usuario || !usuario.uid) return;
 
                 const consulta = query(
@@ -109,6 +117,7 @@ export default function inicioAlumno() {
                         const claseRef = doc(db, 'clases', id);
                         const claseDoc = await getDoc(claseRef);
                         if (claseDoc.exists()) {
+                            // Trae todo el documento de la clase (incluye banner y nombreClase)
                             clasesCargadas.push({ id, ...claseDoc.data() });
                         }
                     }
@@ -121,10 +130,12 @@ export default function inicioAlumno() {
         };
 
         const unsubscribe = navigation.addListener('focus', cargarClasesAlumno);
+        // cargar al montar también
+        cargarClasesAlumno().catch(() => {});
         return unsubscribe;
     }, [navigation]);
 
-    //Unirse a clase por código
+    // Unirse a clase por código
     const handleUnirseClase = async () => {
         try {
             if (!codigoClase.trim()) {
@@ -229,20 +240,28 @@ export default function inicioAlumno() {
                 </View>
             </Modal>
 
-            {/* Clases inscritas */}
+            {/* Clases inscritas: ahora usa banner dinámico y muestra nombre de clase */}
             <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 15 }}>
                 {clasesAlumno.length > 0 ? (
-                    clasesAlumno.map((clase, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => navigation.navigate('Clase', { clase })}
-                        >
-                            <Image style={styles.imScroll} source={require('../../assets/bannerClase/Rectangle 18.png')} />
-                            <Text style={[styles.font, { position: 'absolute', bottom: 20, left: 20, color: '#fff' }]}>
-                                {clase.nombre || 'Clase'}
-                            </Text>
-                        </TouchableOpacity>
-                    ))
+                    clasesAlumno.map((clase, index) => {
+                        // banner puede venir en el documento como 'banner' o 'bannerKey'
+                        const bannerKey = clase.banner || clase.bannerKey || clase.bannerName || null;
+                        const bannerSource = bannerKey && bannerMap[bannerKey] ? bannerMap[bannerKey] : DEFAULT_BANNER;
+                        const nombreClase = clase.nombreClase || clase.nombre || 'Clase';
+
+                        return (
+                            <TouchableOpacity
+                                key={clase.id || index}
+                                onPress={() => navigation.navigate('Clase', { clase })}
+                                style={{ marginBottom: 12 }}
+                            >
+                                <Image style={styles.imScroll} source={bannerSource} />
+                                <Text style={[styles.font, { position: 'absolute', bottom: 20, left: 30, color: '#000000', fontSize: 18}]}>
+                                    {nombreClase}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })
                 ) : (
                     <View style={{ alignItems: 'center', marginTop: 20 }}>
                         <Image source={require('../../assets/Proyecto nuevo (2) 1.png')} style={{opacity: 0.5}} />
@@ -250,10 +269,7 @@ export default function inicioAlumno() {
                             No estás inscrito en ninguna clase aún.
                         </Text>
                     </View>
-                )
-
-
-                }
+                )}
             </ScrollView>
 
             {/* Decoración inferior */}
@@ -282,7 +298,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Kavoon_400Regular',
         bottom: 60,
         left: '1%',
-        opacity: 0.5,
     },
     tex1: {
         top: 70,
@@ -300,10 +315,15 @@ const styles = StyleSheet.create({
     },
     imScroll: {
         marginTop: 12,
-        width: '95%',
-        height: 210,
+        width: 374,
+        height: 170,
         left: 10,
         borderRadius: 30,
+        opacity: 0.65,
+        borderColor: '#000',
+        borderWidth: 3,
+        borderRadius: 20,
+
     },
     boton1: {
         backgroundColor: '#34B0A6',

@@ -169,7 +169,7 @@ export default function JuegoAbecedario({ navigation, route }) {
 
       // update legacy
       try {
-        const progresoGlobalPrev = alumnoData.progreso || {};
+        const progresoGlobalPrev = alumnoData.progresoPorClase || {};
         const catPrev = progresoGlobalPrev[categoria] || {};
         const actividadLegacy = {
           puntos: currentPoints,
@@ -183,7 +183,7 @@ export default function JuegoAbecedario({ navigation, route }) {
             [actividadId]: actividadLegacy,
           },
         };
-        await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
+        await setDoc(alumnoRef, { progresoPorClase: progresoGlobalNuevo }, { merge: true });
       } catch (eLegacy) {
         console.log('No se pudo actualizar progreso legacy:', eLegacy);
       }

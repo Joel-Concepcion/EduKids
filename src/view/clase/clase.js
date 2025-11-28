@@ -19,6 +19,7 @@ const ACTIVITY_BANNERS = {
   'vocabulario-memoria': require('../../assets/game/literatura/bannerABC.png'),
   'suma-basica': require('../../assets/bannerActi/Rectangle 26.png'),
   'figuras-formas': require('../../assets/game/figurasFormas/forma.png'),
+  'Juego-Sumas-Manzana': require('../../assets/game/matemática/sumaManzana.png'),
   default: require('../../assets/bannerActi/Rectangle 27.png'),
 };
 
@@ -29,6 +30,7 @@ const ACTIVITY_SCREENS = {
   'vocabulario-memoria': 'Juego de abecedario',
   'suma-basica': 'Juego de Sumas',
   'figuras-formas': 'Formas',
+  'Juego-Sumas-Manzana': 'Juego de Sumas Manzana'
   // añade más mapeos según necesites
 };
 
@@ -81,6 +83,7 @@ export default function Clase() {
         'Juego de abecedario': 'vocabulario-memoria',
         'Suma Básica': 'suma-basica',
         'Formas': 'figuras-formas',
+        'Juego de Sumas Manzana': 'Juego-Sumas-Manzana'
       };
       const key = legacyMap[actividad] || 'default';
       return ACTIVITY_BANNERS[key] || ACTIVITY_BANNERS.default;
@@ -104,6 +107,7 @@ export default function Clase() {
         'Suma Básica': 'Juego de Sumas',
         'Formas': 'Formas',
         'Juego de abecedario': 'Juego de abecedario',
+        'Juego de Sumas Manzana': 'Juego de Sumas Manzana',
       };
       return legacyMap[actividad] || actividad;
     }

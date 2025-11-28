@@ -53,7 +53,7 @@ export default function JuegoFormas({ navigation, route }) {
   const tapSoundRef = useRef(new Audio.Sound());
   const bgMusicRef = useRef(new Audio.Sound());
   const actividadId = actividadParam || 'juego-formas';
-  const categoria = 'Formas' /* or 'Matemática' if shapes are in that category; adjust if needed */;
+  const categoria = 'Formas';
 
   useEffect(() => {
     let mounted = true;
@@ -74,7 +74,6 @@ export default function JuegoFormas({ navigation, route }) {
     };
     setup();
 
-    // cleanup: stop/unload audio when unmount (or when navigation leaves)
     return () => {
       mounted = false;
       const cleanup = async () => {
@@ -97,7 +96,6 @@ export default function JuegoFormas({ navigation, route }) {
   }, []);
 
   useEffect(() => {
-    // welcome message
     try {
       Speech.speak('Bienvenido, es hora de aprender sobre las figuras y formas', { language: 'es' });
     } catch (e) {
@@ -105,7 +103,6 @@ export default function JuegoFormas({ navigation, route }) {
     }
   }, []);
 
-  // Play tap sound safely
   const playTap = async () => {
     try {
       const s = tapSoundRef.current;
@@ -115,11 +112,16 @@ export default function JuegoFormas({ navigation, route }) {
         await s.stopAsync();
         await s.setPositionAsync(0);
       }
-      await s.replayAsync();
+      // use replayAsync if available, otherwise playAsync
+      if (typeof s.replayAsync === 'function') {
+        await s.replayAsync();
+      } else {
+        await s.playAsync();
+      }
     } catch { }
   };
 
-  // Reemplaza tu función guardarProgresoPorClase por esta versión segura
+  // Guardar SOLO en progresoPorClase (sin actualizar esquema legacy)
   const guardarProgresoPorClase = async (puntos, touchedMap, isFinal = false) => {
     try {
       const idParaGuardar = alumnoParam || auth?.currentUser?.uid;
@@ -137,22 +139,22 @@ export default function JuegoFormas({ navigation, route }) {
       const fechaHoy = new Date().toISOString().split('T')[0];
       const intentosPrev = Array.isArray(actividadPrev?.intentos) ? actividadPrev.intentos : [];
       const nuevoIntento = {
-        puntos,
+        puntos: typeof puntos === 'number' ? puntos : Number(puntos) || 0,
         figurasTocadas: Object.keys(touchedMap).filter(k => touchedMap[k]),
         fecha: fechaHoy,
         final: !!isFinal,
         errores: typeof errors === 'number' ? errors : 0,
       };
 
-      // Aseguramos que la actividad nueva siempre tenga campo errores y puntos
       const actividadNueva = {
         ...(actividadPrev || {}),
-        puntos: typeof puntos === 'number' ? puntos : Number(puntos) || 0,
+        puntos: typeof nuevoIntento.puntos === 'number' ? nuevoIntento.puntos : Number(nuevoIntento.puntos) || 0,
         errores: typeof nuevoIntento.errores === 'number' ? nuevoIntento.errores : 0,
         categoria,
-        nombre: actividadPrev?.nombre || 'Abecedario',
+        nombre: actividadPrev?.nombre || 'Juego de Formas',
         ultimaActualizacion: fechaHoy,
         intentos: [...intentosPrev, nuevoIntento],
+        maxPoints: actividadPrev?.maxPoints || MAX_POINTS,
       };
 
       const actividadesActualizadas = {
@@ -160,17 +162,14 @@ export default function JuegoFormas({ navigation, route }) {
         [actividadId]: actividadNueva,
       };
 
-      // Calcular resumen de forma defensiva: leer último intento y usar 0 por defecto
+      // Recalcular resumen usando puntos acumulados por actividad (actividad.puntos)
       const resumen = Object.values(actividadesActualizadas).reduce(
         (acc, act) => {
-          const lastIntento = Array.isArray(act.intentos) && act.intentos.length > 0
-            ? act.intentos[act.intentos.length - 1]
-            : null;
-          const lastPuntos = lastIntento && typeof lastIntento.puntos === 'number' ? lastIntento.puntos : (typeof act.puntos === 'number' ? act.puntos : 0);
-          const lastErrores = lastIntento && typeof lastIntento.errores === 'number' ? lastIntento.errores : (typeof act.errores === 'number' ? act.errores : 0);
+          const puntosAct = typeof act.puntos === 'number' ? act.puntos : 0;
+          const erroresAct = typeof act.errores === 'number' ? act.errores : 0;
           return {
-            puntosTotales: (acc.puntosTotales || 0) + lastPuntos,
-            erroresTotales: (acc.erroresTotales || 0) + lastErrores,
+            puntosTotales: (acc.puntosTotales || 0) + puntosAct,
+            erroresTotales: (acc.erroresTotales || 0) + erroresAct,
           };
         },
         { puntosTotales: 0, erroresTotales: 0 }
@@ -180,64 +179,36 @@ export default function JuegoFormas({ navigation, route }) {
       const progresoClaseNuevo = { actividades: actividadesActualizadas, resumen };
       const progresoPorClaseNuevo = { ...progresoPorClase, [claseId]: progresoClaseNuevo };
 
+      // Guardar SOLO en progresoPorClase (merge para no borrar otros campos)
       await setDoc(alumnoRef, { progresoPorClase: progresoPorClaseNuevo }, { merge: true });
 
-      // actualizar esquema legacy de forma defensiva
-      try {
-        const progresoGlobalPrev = alumnoData.progreso || {};
-        const catPrev = progresoGlobalPrev[categoria] || {};
-        const actividadLegacy = {
-          puntos: actividadNueva.puntos,
-          fecha: fechaHoy,
-          figurasTocadas: nuevoIntento.figurasTocadas,
-          errores: actividadNueva.errores,
-        };
-        const progresoGlobalNuevo = {
-          ...progresoGlobalPrev,
-          [categoria]: {
-            ...catPrev,
-            [actividadId]: actividadLegacy,
-          },
-        };
-        await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
-      } catch (eLegacy) {
-        console.log('No se pudo actualizar progreso legacy:', eLegacy);
-      }
-
-      console.log('Progreso guardado:', { alumno: idParaGuardar, claseId, actividadId, puntos: actividadNueva.puntos, final: !!isFinal });
+      console.log('Progreso guardado en progresoPorClase:', { alumno: idParaGuardar, claseId, actividadId, puntos: actividadNueva.puntos, final: !!isFinal });
     } catch (e) {
-      console.error('Error guardando progreso (safe):', e);
+      console.error('Error guardando progreso en progresoPorClase:', e);
     }
   };
 
-  // When user presses a shape
   const onPressShape = async (shape) => {
-    // Speak shape name
     try {
       Speech.speak(shape.label, { language: 'es' });
     } catch (e) { console.log('speech error', e); }
 
-    // sound effect
     await playTap();
 
     setTouched(prev => {
-      if (prev[shape.key]) return prev; // already touched
+      if (prev[shape.key]) return prev;
       const next = { ...prev, [shape.key]: true };
 
-      // update temporary visible points as number of unique shapes touched, capped to MAX_POINTS
-      const touchedCount = Object.keys(next).length;
+      const touchedCount = Object.keys(next).filter(k => next[k]).length;
       const tempPoints = Math.min(Math.round((touchedCount / SHAPES.length) * MAX_POINTS), MAX_POINTS);
       setPointsVisible(tempPoints);
 
-      // autosave intermediate progress
+      // autosave intermediate progress (only in progresoPorClase)
       guardarProgresoPorClase(tempPoints, next, false).catch(err => console.log('guardar err', err));
 
-      // if all shapes touched => finish session and assign final points
       if (touchedCount === SHAPES.length) {
-        // give full points
         const finalPoints = MAX_POINTS;
         setTimeout(() => {
-          // final save & modal feedback
           finishSession(next, finalPoints);
         }, 300);
       }
@@ -252,7 +223,6 @@ export default function JuegoFormas({ navigation, route }) {
     const finalPoints = typeof finalPointsParam === 'number' ? finalPointsParam : (all ? MAX_POINTS : PARTIAL_POINTS);
     setPointsVisible(finalPoints);
 
-    // message
     if (all) {
       const msg = `¡Felicidades! Completaste la actividad y obtuviste ${finalPoints} puntos.`;
       setFinalMessage(msg);
@@ -264,17 +234,15 @@ export default function JuegoFormas({ navigation, route }) {
       try { Speech.speak(msg, { language: 'es' }); } catch { }
     }
 
-    // final save
+    // final save only in progresoPorClase
     guardarProgresoPorClase(finalPoints, touchedMap, true).catch(() => { });
     setModalVisible(true);
   };
 
-  // close modal by touching anywhere
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // ensure bg music stops when leaving screen; also stop on modal close if desired
   useEffect(() => {
     const unsub = navigation?.addListener?.('beforeRemove', async () => {
       try {
@@ -288,7 +256,6 @@ export default function JuegoFormas({ navigation, route }) {
     });
     return () => {
       if (unsub) unsub();
-      // also try to stop audio on unmount (handled in initial effect cleanup)
     };
   }, [navigation]);
 
@@ -341,7 +308,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#99E7D9',
     alignItems: 'center',
     paddingTop: 40,
-    
   },
   title: {
     fontSize: 24,
@@ -377,7 +343,6 @@ const styles = StyleSheet.create({
   },
   formaTexto: {
     fontSize: 14,
-    //fontWeight: '700',
     textAlign: 'center',
     fontFamily: 'CenturyGothic'
   },

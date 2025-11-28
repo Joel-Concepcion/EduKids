@@ -28,18 +28,18 @@ const auth = getAuth();
 
 // Mapa de metadatos para actividades
 const ACTIVIDAD_META = {
-  'Juego de Palabras': { 
-    id: 'juego-palabras', 
-    nombre: 'Juego de Palabras', 
-    categoria: 'Literatura', 
+  'Juego de Palabras': {
+    id: 'juego-palabras',
+    nombre: 'Juego de Palabras',
+    categoria: 'Literatura',
     bannerKey: 'juego-palabras',
     imagen: require('../../../assets/game/literatura/formarP.png'),
     screen: 'Juego de Palabras'
   },
-  'Juego de abecedario': { 
-    id: 'vocabulario-memoria', 
-    nombre: 'Vocabulario Memoria', 
-    categoria: 'Literatura', 
+  'Juego de abecedario': {
+    id: 'vocabulario-memoria',
+    nombre: 'Vocabulario Memoria',
+    categoria: 'Literatura',
     bannerKey: 'vocabulario-memoria',
     imagen: require('../../../assets/game/literatura/bannerABC.png'),
     screen: 'Juego de abecedario'
@@ -110,7 +110,7 @@ export default function ListaActividades() {
       Alert.alert('Error', 'Por favor selecciona una actividad primero');
       return;
     }
-    
+
     const actividad = actividades.find(a => a.id === actividadSeleccionadaId);
     if (actividad && actividad.screen) {
       navigation.navigate(actividad.screen);
@@ -128,7 +128,7 @@ export default function ListaActividades() {
 
       const actividad = actividades.find(a => a.id === actividadSeleccionadaId);
       const clase = clases.find(c => c.id === claseId);
-      
+
       if (!actividad || !clase) return;
 
       // Verificar si la actividad ya está asignada
@@ -159,10 +159,10 @@ export default function ListaActividades() {
       );
 
       Alert.alert(
-        'Actividad asignada', 
+        'Actividad asignada',
         `Se agregó "${actividad.nombre}" a la clase ${clase.nombreClase || clase.nombre}`
       );
-      
+
       setMostrarClases(false);
       setActividadSeleccionadaId(null);
 
@@ -180,23 +180,25 @@ export default function ListaActividades() {
   // Componente individual para cada actividad
   const ActividadItem = ({ actividad }) => {
     const isSelected = actividadSeleccionadaId === actividad.id;
-    
+
     return (
       <View style={styles.actividadContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
+          testID={`actividad-${actividad.id}`}
+          accessibilityLabel={`actividad-${actividad.id}`}
           style={[
             styles.tou,
             isSelected && styles.actividadSeleccionada
-          ]} 
+          ]}
           onPress={() => handleImagenPress(actividad.id)}
         >
-          <Image style={styles.Image} source={actividad.imagen} />
+          <Image style={styles.Image} source={actividad.imagen} testID={`imagen-${actividad.id}`}/>
         </TouchableOpacity>
-        
+
         {/* Botones que solo se muestran para la actividad seleccionada */}
         {isSelected && (
           <View style={styles.botones}>
-            <TouchableOpacity style={styles.boton} onPress={handleAgregarActividad}>
+            <TouchableOpacity testID="agregarActividadButton" style={styles.boton} onPress={handleAgregarActividad}>
               <Text style={styles.textto}>Agregar actividad</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.boton} onPress={handleProbarActividad}>
@@ -211,10 +213,12 @@ export default function ListaActividades() {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Lista actividades literatura</Text>
-      
+
       {/* Lista de actividades */}
       <FlatList
+        initialNumToRender={10}
         data={actividades}
+        //data={actividades}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ActividadItem actividad={item} />
@@ -225,7 +229,7 @@ export default function ListaActividades() {
       />
 
       {/* Modal para seleccionar clase */}
-      <Modal visible={mostrarClases} transparent animationType="slide">
+      <Modal visible={mostrarClases} transparent animationType="slide" testID="modalClases">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <TouchableOpacity
@@ -234,11 +238,11 @@ export default function ListaActividades() {
             >
               <Text style={styles.closeButtonText}>❌</Text>
             </TouchableOpacity>
-            
+
             <Text style={styles.modalTitle}>
               Agregar "{getActividadSeleccionada()?.nombre}" a:
             </Text>
-            
+
             {clases.length === 0 ? (
               <Text style={styles.sinClases}>No tienes clases creadas</Text>
             ) : (
@@ -247,6 +251,7 @@ export default function ListaActividades() {
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <TouchableOpacity
+                    testID={`clase-${item.id}`}
                     style={styles.claseItem}
                     onPress={() => handleSeleccionClase(item.id)}
                   >
@@ -291,7 +296,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    
+
   },
   tou: {
     alignItems: 'center',

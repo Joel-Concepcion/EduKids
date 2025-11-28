@@ -28,6 +28,7 @@ import ListaActividadesL from "./src/view/game/literatura/listaActividades";
 import ListaActividadesF from "./src/view/game/formas/listaActividades";
 import PerfilAlumno from "./src/view/registroAlumno/perfilAlumno";
 import JuegoAbecedario from "./src/view/game/literatura/JuegoAbecedario";
+import SumaManzana from "./src/view/game/matematica/sumaManzanas"
 
 import ClaseNavegacion from "./ClaseNavegacion";
 
@@ -114,6 +115,7 @@ function StackMenu() {
             <Stack.Screen name="inicioAlumno" component={inicioAlumno} options={{headerShown: false}}/>
 
             <Stack.Screen name="Juego de Sumas" component={Juego1Suma} options={{ title: 'Juego Montessori de Sumas' }} />
+             <Stack.Screen name="Juego de Sumas Manzana" component={SumaManzana} options={{ title: 'Juego Montessori de Sumas' }} />
             <Stack.Screen name="Juego de Palabras" component={JuegoPalabras} options={{ title: 'Juego Montessori de Palabras' }} />
             <Stack.Screen name="Formas" component={JuegoFormas} options={{ title: 'Juego Montessori de formas' }} />
             <Stack.Screen name="Lista actividades" component={ListaActividades}/>

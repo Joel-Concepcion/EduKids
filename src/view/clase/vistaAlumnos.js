@@ -10,14 +10,26 @@ import {
 import React, { useState, useEffect } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Font from 'expo-font';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { db } from '../../model/db';
+
+// Si usas Firebase Storage para guardar imágenes, exporta `storage` desde model/db
+// y descomenta las siguientes líneas. Si no usas Storage, el código seguirá funcionando.
+import { getDownloadURL, ref as storageRef } from 'firebase/storage';
+import { storage } from '../../model/db';
 
 const screenWidth = Dimensions.get('window').width;
 
 const fetchFonts = () => {
   return Font.loadAsync({
-    'CenturyGothic': require('../../assets/font/3394-font.ttf'),
+    CenturyGothic: require('../../assets/font/3394-font.ttf'),
     'CenturyGothic-Bold': require('../../assets/font/4410-font.ttf'),
   });
 };
@@ -43,6 +55,9 @@ export default function VistaAlumnos() {
   const [datosActividades, setDatosActividades] = useState(null);
   const [cargando, setCargando] = useState(false);
 
+  // estado para datos del docente (para mostrar su imagen correctamente)
+  const [docente, setDocente] = useState(null);
+
   const { idClase, clase } = route.params || {};
 
   useEffect(() => {
@@ -63,7 +78,7 @@ export default function VistaAlumnos() {
 
         const lista = resultado.docs.map(d => ({
           id: d.id,
-          ...d.data()
+          ...d.data(),
         }));
 
         setAlumnosInscritos(lista);
@@ -75,6 +90,141 @@ export default function VistaAlumnos() {
     cargarAlumnos();
   }, [idClase, clase]);
 
+  // ---------------------------
+  // Helpers para imágenes
+  // ---------------------------
+
+  // Devuelve source válido para <Image> del docente
+  // Maneja:
+  // - URL remota (http/https)
+  // - data URI base64 (data:image/...)
+  // - nombre de asset local (avatarMap)
+  // - objeto require(...) ya guardado (raro)
+  const getDocenteImageSource = (docenteData) => {
+    if (!docenteData) return require('../../assets/avatar/Ellipse 3.png'); // placeholder local
+
+    const possible =
+      docenteData.profileImage ||
+      docenteData.photoURL ||
+      docenteData.avatar ||
+      docenteData.imageUrl;
+
+    // 1) data URI (base64) ej: "data:image/jpeg;base64,/9j/4AAQSk..."
+    if (typeof possible === 'string' && possible.startsWith('data:image')) {
+      return { uri: possible };
+    }
+
+    // 2) URL remota
+    if (typeof possible === 'string' && (possible.startsWith('http://') || possible.startsWith('https://'))) {
+      return { uri: possible };
+    }
+
+    // 3) nombre de asset local (ej: 'Ellipse 3.png')
+    if (typeof possible === 'string' && avatarMap[possible]) {
+      return avatarMap[possible];
+    }
+
+    // 4) si ya guardaste un objeto require(...) (raro)
+    if (possible && typeof possible === 'object') {
+      return possible;
+    }
+
+    // fallback
+    return require('../../assets/avatar/Ellipse 3.png');
+  };
+
+  // Devuelve source válido para <Image> del alumno (maneja URL remota o asset local)
+  const getAlumnoAvatarSource = (alumno) => {
+    if (!alumno) return avatarMap['Ellipse 3.png'];
+
+    const possible = alumno.profileImage || alumno.photoURL || alumno.avatar;
+
+    if (typeof possible === 'string' && possible.startsWith('data:image')) {
+      return { uri: possible };
+    }
+
+    if (typeof possible === 'string' && (possible.startsWith('http://') || possible.startsWith('https://'))) {
+      return { uri: possible };
+    }
+
+    if (typeof possible === 'string' && avatarMap[possible]) {
+      return avatarMap[possible];
+    }
+
+    if (possible && typeof possible === 'object') {
+      return possible;
+    }
+
+    return avatarMap['Ellipse 3.png'];
+  };
+
+  // ---------------------------
+  // Cargar datos del docente (resuelve Storage si es necesario)
+  // ---------------------------
+  useEffect(() => {
+    const cargarDocente = async () => {
+      try {
+        const docenteId = clase?.docenteId;
+
+        if (!docenteId) {
+          // Si no hay docenteId, intentamos usar la info que venga en `clase` (fallback)
+          if (clase) {
+            setDocente({
+              profileImage: clase.profileImage,
+              nombre: clase.docenteNombre,
+            });
+          } else {
+            setDocente(null);
+          }
+          return;
+        }
+
+        const docenteRef = doc(db, 'users', docenteId);
+        const docenteSnap = await getDoc(docenteRef);
+        if (!docenteSnap.exists()) {
+          console.warn('Docente no encontrado en users/:', docenteId);
+          if (clase) {
+            setDocente({
+              profileImage: clase.profileImage,
+              nombre: clase.docenteNombre,
+            });
+          } else {
+            setDocente(null);
+          }
+          return;
+        }
+
+        let docenteData = docenteSnap.data();
+
+        // Si guardas una ruta de Storage en storagePath, resuelve la URL (opcional)
+        // Si no usas Storage, este bloque se salta.
+        if (
+          docenteData.storagePath &&
+          typeof docenteData.storagePath === 'string' &&
+          typeof storage !== 'undefined'
+        ) {
+          try {
+            const url = await getDownloadURL(storageRef(storage, docenteData.storagePath));
+            docenteData = { ...docenteData, profileImage: url };
+          } catch (err) {
+            console.warn('No se pudo obtener downloadURL para docente:', err);
+            // seguimos con lo que tengamos (profileImage puede ser data URI o URL ya guardada)
+          }
+        }
+
+        setDocente(docenteData);
+      } catch (err) {
+        console.error('Error cargando docente en VistaAlumnos:', err);
+        setDocente(null);
+      }
+    };
+
+    cargarDocente();
+  }, [clase]);
+
+  // ---------------------------
+  // Progreso del alumno (igual que antes)
+  // ---------------------------
   const construirListaActividades = (alumnoData) => {
     const claseIdActual = idClase || clase?.id || 'sin-clase';
     const progresoPorClase = alumnoData.progresoPorClase || {};
@@ -102,7 +252,10 @@ export default function VistaAlumnos() {
           categoria: actividadData.categoria || 'General',
           puntos,
           errores,
-          ultimaActualizacion: actividadData.ultimaActualizacion || (actividadData.intentos && actividadData.intentos.slice(-1)[0]?.fecha) || null,
+          ultimaActualizacion:
+            actividadData.ultimaActualizacion ||
+            (actividadData.intentos && actividadData.intentos.slice(-1)[0]?.fecha) ||
+            null,
           maxPoints: actividadData.maxPoints || DEFAULT_MAX_POINTS_PER_ACTIVITY,
         };
       });
@@ -136,10 +289,9 @@ export default function VistaAlumnos() {
     return actividades;
   };
 
-  // Agrupa las actividades por categoría y suma puntos y maxPoints
   const aggregateByCategory = (activitiesList) => {
     const map = {};
-    activitiesList.forEach(act => {
+    activitiesList.forEach((act) => {
       const cat = act.categoria || 'General';
       if (!map[cat]) {
         map[cat] = {
@@ -151,7 +303,6 @@ export default function VistaAlumnos() {
       }
       map[cat].puntosTotales += Number(act.puntos || 0);
       map[cat].maxPointsTotales += Number(act.maxPoints || DEFAULT_MAX_POINTS_PER_ACTIVITY);
-      // mantener la fecha más reciente
       if (act.ultimaActualizacion) {
         const prev = map[cat].ultimaActualizacion;
         if (!prev || new Date(act.ultimaActualizacion) > new Date(prev)) {
@@ -159,8 +310,7 @@ export default function VistaAlumnos() {
         }
       }
     });
-    // convertir a arreglo
-    return Object.values(map).map(c => {
+    return Object.values(map).map((c) => {
       const ratio = c.maxPointsTotales > 0 ? Math.max(0, Math.min(1, c.puntosTotales / c.maxPointsTotales)) : 0;
       const percent = Math.round(ratio * 100);
       return {
@@ -224,7 +374,7 @@ export default function VistaAlumnos() {
     navigation.navigate('Juego1Suma', {
       alumnoId: alumnoIdPara,
       claseId: idClase || clase?.id,
-      actividadId: actividadId || 'suma-basica'
+      actividadId: actividadId || 'suma-basica',
     });
   };
 
@@ -233,9 +383,15 @@ export default function VistaAlumnos() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image style={styles.imM} source={{ uri: clase?.profileImage }} />
+        <Image
+          style={styles.imM}
+          source={getDocenteImageSource(docente || clase)}
+          onError={(e) => {
+            console.warn('Error cargando imagen docente header:', e.nativeEvent);
+          }}
+        />
         <Text style={[styles.tex, styles.font]}>
-          {clase?.docenteNombre || 'Sin nombre'}
+          {clase?.docenteNombre || docente?.displayName || docente?.nombre || 'Sin nombre'}
         </Text>
       </View>
 
@@ -250,14 +406,17 @@ export default function VistaAlumnos() {
               <TouchableOpacity
                 style={[
                   styles.imaj,
-                  alumnoSeleccionado?.id === alumno.id && styles.alumnoSeleccionado
+                  alumnoSeleccionado?.id === alumno.id && styles.alumnoSeleccionado,
                 ]}
                 onPress={() => handleSeleccionAlumno(alumno)}
               >
                 <View style={styles.contenI}>
                   <Image
                     style={styles.ima}
-                    source={avatarMap[alumno.avatar] || avatarMap['Ellipse 3.png']}
+                    source={getAlumnoAvatarSource(alumno)}
+                    onError={(e) => {
+                      console.warn('Error cargando avatar alumno', alumno.id, e.nativeEvent);
+                    }}
                   />
                   <Text style={[styles.font1, styles.txS]}>{alumno.nombres_apellidos}</Text>
                 </View>
@@ -325,10 +484,10 @@ export default function VistaAlumnos() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#ffffff" },
+  container: { flex: 1, padding: 20, backgroundColor: '#ffffff' },
   header: {
     marginTop: 30,
-    backgroundColor: "#99E7D9",
+    backgroundColor: '#99E7D9',
     width: Dimensions.get('window').width,
     right: 20,
     alignItems: 'center',
@@ -339,23 +498,23 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   font: {
-    fontFamily: 'CenturyGothic'
+    fontFamily: 'CenturyGothic',
   },
   tex: {
     left: 50,
     fontSize: 17,
     top: 20,
-    marginBottom: 5
+    marginBottom: 5,
   },
   titulo: {
     fontSize: 18,
     marginBottom: 15,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   alumnoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: 10,
   },
   imaj: {
     backgroundColor: '#34B0A6',
@@ -363,57 +522,59 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 40,
     flex: 1,
-    marginRight: 10
+    marginRight: 10,
   },
   alumnoSeleccionado: {
     backgroundColor: '#2a8e86',
     borderWidth: 2,
-    borderColor: '#1a5c57'
+    borderColor: '#1a5c57',
   },
   ima: {
     width: 60,
     height: 60,
     left: 10,
-    top: 5
+    top: 5,
+    borderRadius: 30,
   },
   imM: {
     left: 30,
     width: 80,
     height: 80,
     borderRadius: 50,
-    marginTop: 20
+    marginTop: 20,
   },
   contenI: {
     backgroundColor: 'transparent',
     flexDirection: 'row',
     borderRadius: 30,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   txS: {
-    top: "40%",
+    top: '40%',
     left: 90,
     color: 'white',
     fontSize: 16,
-    position: 'absolute'
+    position: 'absolute',
   },
   idText: {
     top: 35,
     left: 70,
     color: 'white',
     fontSize: 12,
-    position: 'absolute'
+    position: 'absolute',
   },
   font1: {
-    fontFamily: 'CenturyGothic-Bold'
+    fontFamily: 'CenturyGothic-Bold',
   },
   scrollView: {
-    width: screenWidth - 20, right: 12
+    width: screenWidth - 20,
+    right: 12,
   },
   sinAlumnos: {
     marginTop: 20,
     textAlign: 'center',
     fontSize: 16,
-    color: '#666'
+    color: '#666',
   },
   botonJuego: {
     backgroundColor: '#FF6B6B',
@@ -421,12 +582,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   botonJuegoTexto: {
     color: 'white',
     fontFamily: 'CenturyGothic-Bold',
-    fontSize: 14
+    fontSize: 14,
   },
 
   chartContainer: {
@@ -447,80 +608,86 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8
+    marginBottom: 8,
   },
   chartTitle: {
     fontSize: 16,
     marginBottom: 5,
-    textAlign: 'center', flex: 1
+    textAlign: 'center',
+    flex: 1,
   },
   closeButton: {
     position: 'absolute',
-    right: 8, top: -6
+    right: 8,
+    top: -6,
   },
   closeButtonText: {
-    fontSize: 20
+    fontSize: 20,
   },
 
   alumnoNombre: {
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 10
+    marginBottom: 10,
   },
   cargandoContainer: {
     backgroundColor: '#f8f9fa',
-    padding: 20, borderRadius: 16,
-    alignItems: 'center', justifyContent: 'center',
-    height: 120
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 120,
   },
   cargandoText: {
     color: '#34B0A6',
-    fontSize: 16
+    fontSize: 16,
   },
 
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12, paddingVertical: 8,
+    marginBottom: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee'
+    borderBottomColor: '#eee',
   },
   progressBarBackground: {
     height: 12,
     backgroundColor: '#e6f2ef',
     borderRadius: 8,
     marginTop: 8,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#34B0A6'
+    backgroundColor: '#34B0A6',
   },
   progressMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 6
+    marginTop: 6,
   },
 
   botonPequeno: {
     backgroundColor: '#34B0A6',
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 8
+    borderRadius: 8,
   },
 
   sinDatosContainer: {
     backgroundColor: '#f8f9fa',
-    padding: 20, borderRadius: 16,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 120
+    height: 120,
   },
   sinDatosText: {
     color: '#6c757d',
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 10
+    marginBottom: 10,
   },
 });

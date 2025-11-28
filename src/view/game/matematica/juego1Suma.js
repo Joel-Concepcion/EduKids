@@ -220,7 +220,7 @@ export default function Juego1Suma({ navigation, route }) {
       await setDoc(alumnoRef, { progresoPorClase: progresoPorClaseNuevo }, { merge: true });
 
       try {
-        const progresoGlobalPrev = alumnoData.progreso || {};
+        const progresoGlobalPrev = alumnoData.progresoPorClase || {};
         const catPrev = progresoGlobalPrev[categoria] || {};
         const actividadLegacy = {
           puntos,
@@ -236,7 +236,7 @@ export default function Juego1Suma({ navigation, route }) {
             [actividadId]: actividadLegacy,
           }
         };
-        await setDoc(alumnoRef, { progreso: progresoGlobalNuevo }, { merge: true });
+        await setDoc(alumnoRef, { progresoPorClase: progresoGlobalNuevo }, { merge: true });
       } catch (eLegacy) {
         console.log('No se pudo actualizar esquema legacy (progreso):', eLegacy);
       }
@@ -337,9 +337,9 @@ export default function Juego1Suma({ navigation, route }) {
         <Image source={imagenes[problem.num2]} style={styles.problemImage} resizeMode="contain" />
       </View>
 
-      {mostrarGif && (
+      {/*{mostrarGif && (
         <Image source={imagenes[12]} style={styles.gif} resizeMode="contain" />
-      )}
+      )}*/}
 
       <View style={styles.options}>
         {options.map((opt, idx) => (
