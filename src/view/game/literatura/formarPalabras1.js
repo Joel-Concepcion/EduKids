@@ -124,7 +124,7 @@ export default function JuegoPalabras({ navigation, route }) {
         await ref.current.setPositionAsync(0);
       }
       await ref.current.playAsync();
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -309,19 +309,18 @@ export default function JuegoPalabras({ navigation, route }) {
                 onPress={async () => {
                   setModalVisible(false);
                   try {
-                    const status = await bgMusicRef.current.getStatusAsync();
-                    if (status.isLoaded) {
-                      await bgMusicRef.current.stopAsync();
-                      await bgMusicRef.current.unloadAsync();
+                    if (backgroundMusic) {
+                      await backgroundMusic.stopAsync();
+                      await backgroundMusic.unloadAsync();
                     }
                   } catch (e) {
                     console.log('Error al detener música:', e);
                   }
-                  navigation.navigate('Clase');
+                  navigation?.goBack?.();
                 }}
               >
                 <Text style={{ color: '#fff', fontWeight: 'bold', fontFamily: 'CenturyGothicBold' }}>
-                  Clase
+                  Salir
                 </Text>
               </TouchableOpacity>
             </View>

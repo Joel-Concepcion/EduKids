@@ -28,7 +28,12 @@ import ListaActividadesL from "./src/view/game/literatura/listaActividades";
 import ListaActividadesF from "./src/view/game/formas/listaActividades";
 import PerfilAlumno from "./src/view/registroAlumno/perfilAlumno";
 import JuegoAbecedario from "./src/view/game/literatura/JuegoAbecedario";
-import SumaManzana from "./src/view/game/matematica/sumaManzanas"
+import SumaManzana from "./src/view/game/matematica/sumaManzanas";
+
+import JuegoConocerNumeros from "./src/view/game/matematica/JuegoConocerNumeros";
+import JuegoResta from "./src/view/game/matematica/JuegoResta";
+
+import AsociacionPalabras from "./src/view/game/literatura/AsociacionPalabras"
 
 import ClaseNavegacion from "./ClaseNavegacion";
 
@@ -115,14 +120,17 @@ function StackMenu() {
             <Stack.Screen name="inicioAlumno" component={inicioAlumno} options={{headerShown: false}}/>
 
             <Stack.Screen name="Juego de Sumas" component={Juego1Suma} options={{ title: 'Juego Montessori de Sumas' }} />
-             <Stack.Screen name="Juego de Sumas Manzana" component={SumaManzana} options={{ title: 'Juego Montessori de Sumas' }} />
+            <Stack.Screen name="Juego de Sumas Manzana" component={SumaManzana} options={{ title: 'Juego Montessori de Sumas' }} />
+            <Stack.Screen name="Juego para conocer numeros" component={JuegoConocerNumeros} options={{ title: 'Juego Montessori de numeros' }} />
+            <Stack.Screen name="Juego de Resta" component={JuegoResta} options={{ title: 'Juego Montessori de resta' }} />
             <Stack.Screen name="Juego de Palabras" component={JuegoPalabras} options={{ title: 'Juego Montessori de Palabras' }} />
             <Stack.Screen name="Formas" component={JuegoFormas} options={{ title: 'Juego Montessori de formas' }} />
             <Stack.Screen name="Lista actividades" component={ListaActividades}/>
+            <Stack.Screen name="Asociación  de palabras" component={AsociacionPalabras}/>
             <Stack.Screen name="Lista actividades literatura" component={ListaActividadesL}/>
             <Stack.Screen name="Lista actividades de figuras y formas" component={ListaActividadesF}/>
             <Stack.Screen name="Perfil Alumno" component={PerfilAlumno}/>
-             <Stack.Screen name="Juego de abecedario" component={JuegoAbecedario} options={{ title: 'Juego Montessori de abecedario' }} />
+            <Stack.Screen name="Juego de abecedario" component={JuegoAbecedario} options={{ title: 'Juego Montessori de abecedario' }} />
 
 
             <Stack.Screen name="Lista de alumnos" component={listaAlumno}/>

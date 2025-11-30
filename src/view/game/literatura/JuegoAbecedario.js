@@ -47,7 +47,7 @@ const imagenes = {
 };
 
 const LETTERS = [
-  'a','b','c','d','e','f','g','h','i','j','k','l','m','n','ñ','o','p','q','r','s','t','u','v','w','x','y','z'
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
 ];
 
 const MAX_POINTS = 10;
@@ -82,7 +82,7 @@ export default function JuegoAbecedario({ navigation, route }) {
           const s = tapSoundRef.current;
           const st = await s.getStatusAsync();
           if (st.isLoaded) await s.unloadAsync();
-        } catch {}
+        } catch { }
       };
       cleanup();
     };
@@ -107,7 +107,7 @@ export default function JuegoAbecedario({ navigation, route }) {
         }
         await s.replayAsync();
       }
-    } catch {}
+    } catch { }
   };
 
   const actividadId = actividadParam || 'abecedario';
@@ -207,16 +207,16 @@ export default function JuegoAbecedario({ navigation, route }) {
     if (allPressed) {
       const msg = `¡Felicidades! Has escuchado todas las letras y obtuviste ${finalPoints} puntos.`;
       setFinalMessage(msg);
-      try { Speech.speak(msg, { language: 'es' }); } catch {}
+      try { Speech.speak(msg, { language: 'es' }); } catch { }
     } else {
       const missing = LETTERS.length - pressedCount;
       const msg = `Buen intento. Escuchaste ${pressedCount} letras. Obtuviste ${finalPoints} puntos. Practica las ${missing} letras que faltaron.`;
       setFinalMessage(msg);
-      try { Speech.speak(msg, { language: 'es' }); } catch {}
+      try { Speech.speak(msg, { language: 'es' }); } catch { }
     }
 
     // Save final progress marking final = true
-    guardarProgresoPorClase(finalPoints, pressedMap, true).catch(() => {});
+    guardarProgresoPorClase(finalPoints, pressedMap, true).catch(() => { });
     setModalVisible(true);
   };
 
@@ -255,6 +255,22 @@ export default function JuegoAbecedario({ navigation, route }) {
     setModalVisible(false);
     // keep progress displayed; nothing else needed
   };
+
+  // Detener lectura y limpiar al desmontar
+  useEffect(() => {
+    return () => {
+      try { Speech.stop(); } catch (e) { }
+      (async () => {
+        try {
+          if (tapSoundRef.current) {
+            await tapSoundRef.current.unloadAsync();
+            tapSoundRef.current = null;
+          }
+        } catch (e) { }
+      })();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!fontsLoaded) return null;
 

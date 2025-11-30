@@ -44,6 +44,22 @@ const ACTIVIDAD_META = {
     imagen: require('../../../assets/bannerActi/Rectangle 26.png'),
     screen: 'Juego de Sumas'
   },
+  'Juego de resta': {
+    id: 'juego-resta',
+    nombre: 'Juego de resta',
+    categoria: 'Matemática',
+    bannerKey: 'juego-suma',
+    imagen: require('../../../assets/game/matemática/resta.png'),
+    screen: 'Juego de resta'
+  },
+  'Juego conocer numeros': {
+    id: 'juego-numeros',
+    nombre: 'Juego conocer numeros',
+    categoria: 'Matemática',
+    bannerKey: 'juego-numeros',
+    imagen: require('../../../assets/game/matemática/conocerNumeros.png'),
+    screen: 'Juego conocer numeros'
+  },
 };
 
 export default function ListaActividades() {
@@ -55,7 +71,9 @@ export default function ListaActividades() {
   // Lista de actividades disponibles
   const actividades = [
     ACTIVIDAD_META['Juego de Sumas Manzana'],
-    ACTIVIDAD_META['Juego de Sumas']
+    ACTIVIDAD_META['Juego de Sumas'],
+    ACTIVIDAD_META['Juego de resta'],
+    ACTIVIDAD_META['Juego conocer numeros']
   ];
 
   useEffect(() => {
@@ -192,7 +210,7 @@ export default function ListaActividades() {
           ]}
           onPress={() => handleImagenPress(actividad.id)}
         >
-          <Image style={styles.Image} source={actividad.imagen} testID={`imagen-${actividad.id}`}/>
+          <Image style={styles.Image} source={actividad.imagen} testID={`imagen-${actividad.id}`} />
         </TouchableOpacity>
 
         {/* Botones que solo se muestran para la actividad seleccionada */}
@@ -212,7 +230,6 @@ export default function ListaActividades() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Lista actividades literatura</Text>
 
       {/* Lista de actividades */}
       <FlatList

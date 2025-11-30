@@ -259,6 +259,22 @@ export default function JuegoFormas({ navigation, route }) {
     };
   }, [navigation]);
 
+  // Detener lectura y limpiar al desmontar
+  useEffect(() => {
+    return () => {
+      try { Speech.stop(); } catch (e) { }
+      (async () => {
+        try {
+          if (tapSoundRef.current) {
+            await tapSoundRef.current.unloadAsync();
+            tapSoundRef.current = null;
+          }
+        } catch (e) { } b
+      })();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!fontsLoaded) return null;
 
   return (

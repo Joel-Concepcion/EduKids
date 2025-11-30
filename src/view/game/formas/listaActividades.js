@@ -36,6 +36,14 @@ const ACTIVIDAD_META = {
     imagen: require('../../../assets/game/figurasFormas/forma.png'),
     screen: 'Formas'
   },
+    'rompecabeza': { 
+    id: 'figuras-rompecabeza', 
+    nombre: 'rompecabeza', 
+    categoria: 'Figuras', 
+    bannerKey: 'figuras-rompecabeza',
+    imagen: require('../../../assets/game/figurasFormas/rompeCabeza.png'),
+    screen: 'rompecabeza'
+  },
   'Juego de abecedario': { 
     id: 'vocabulario-memoria', 
     nombre: 'Vocabulario Memoria', 
@@ -55,7 +63,9 @@ export default function ListaActividades() {
   // Lista de actividades disponibles
   const actividades = [
     ACTIVIDAD_META['Formas'],
-    ACTIVIDAD_META['Juego de abecedario']
+    ACTIVIDAD_META['rompecabeza'],
+    ACTIVIDAD_META['Juego de abecedario'],
+    
   ];
 
   useEffect(() => {
@@ -210,7 +220,6 @@ export default function ListaActividades() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Lista actividades figuras y formas</Text>
       
       {/* Lista de actividades */}
       <FlatList

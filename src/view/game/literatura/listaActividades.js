@@ -44,6 +44,22 @@ const ACTIVIDAD_META = {
     imagen: require('../../../assets/game/literatura/bannerABC.png'),
     screen: 'Juego de abecedario'
   },
+  'Asociación  de palabras': {
+    id: 'vocabulario-Palabras',
+    nombre: 'Vocabulario Palabras',
+    categoria: 'Literatura',
+    bannerKey: 'vocabulario-Palabras',
+    imagen: require('../../../assets/game/literatura/asociaioPa.png'),
+    screen: 'Asociación  de palabras'
+  },
+  'Dibular letras': {
+    id: 'vocabulario-dibujar',
+    nombre: 'Vocabulario dibular',
+    categoria: 'Literatura',
+    bannerKey: 'vocabulario-dibujar',
+    imagen: require('../../../assets/game/literatura/dibujarLetra.png'),
+    screen: 'Dibular letras'
+  },
 };
 
 export default function ListaActividades() {
@@ -55,7 +71,9 @@ export default function ListaActividades() {
   // Lista de actividades disponibles
   const actividades = [
     ACTIVIDAD_META['Juego de Palabras'],
-    ACTIVIDAD_META['Juego de abecedario']
+    ACTIVIDAD_META['Juego de abecedario'],
+    ACTIVIDAD_META['Asociación  de palabras'],
+    ACTIVIDAD_META['Dibular letras']
   ];
 
   useEffect(() => {
@@ -212,7 +230,6 @@ export default function ListaActividades() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Lista actividades literatura</Text>
 
       {/* Lista de actividades */}
       <FlatList

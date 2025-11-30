@@ -106,8 +106,8 @@ export default function Juego1Suma({ navigation, route }) {
 
       return () => {
         if (soundInstance) {
-          soundInstance.stopAsync().catch(() => {});
-          soundInstance.unloadAsync().catch(() => {});
+          soundInstance.stopAsync().catch(() => { });
+          soundInstance.unloadAsync().catch(() => { });
         }
       };
     }, [])
@@ -130,8 +130,8 @@ export default function Juego1Suma({ navigation, route }) {
         const { sound } = await Audio.Sound.createAsync(require('../../../assets/sound/tapp.mp3'), { shouldPlay: true });
         await sound.playAsync();
         setTimeout(() => {
-          sound.stopAsync().catch(() => {});
-          sound.unloadAsync().catch(() => {});
+          sound.stopAsync().catch(() => { });
+          sound.unloadAsync().catch(() => { });
         }, 800);
       } catch (e) {
         console.log('Error reproducir tap:', e);
@@ -274,7 +274,7 @@ export default function Juego1Suma({ navigation, route }) {
 
     // Mostrar modal y guardar progreso final
     setResultModalVisible(true);
-    guardarProgresoPorClase(puntos).catch(() => {});
+    guardarProgresoPorClase(puntos).catch(() => { });
   };
 
   useEffect(() => {
@@ -284,8 +284,25 @@ export default function Juego1Suma({ navigation, route }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
 
+  // Detener lectura y limpiar al desmontar
+  useEffect(() => {
+    return () => {
+      try { Speech.stop(); } catch (e) { }
+      (async () => {
+        try {
+          if (tapSoundRef.current) {
+            await tapSoundRef.current.unloadAsync();
+            tapSoundRef.current = null;
+          }
+        } catch (e) { }
+      })();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (finished) {
     const puntos = Math.max(10 - errores, 0);
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>¡Juego completado!</Text>
